@@ -35,9 +35,9 @@ func (app *Config) routes() http.Handler {
 	mux.Post("/update-password", app.UpdatePasswordHandler) // New password update route
 
 	// CRUD operations for users
-	mux.Get("/user", app.GetUserHandler)       // Retrieve a user by ID (query parameter)
-	mux.Put("/user", app.UpdateUserHandler)    // Update user by ID (query parameter)
-	mux.Delete("/user", app.DeleteUserHandler) // Delete user by ID (query parameter)
+	mux.Get("/customer", app.GetUserHandler)       // Retrieve a user by ID (query parameter)
+	mux.Put("/customer", app.UpdateUserHandler)    // Update user by ID (query parameter)
+	mux.Delete("/customer", app.DeleteUserHandler) // Delete user by ID (query parameter)
 
 	return mux
 }

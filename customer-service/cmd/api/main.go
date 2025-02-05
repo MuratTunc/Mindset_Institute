@@ -55,11 +55,6 @@ func main() {
 		log.Fatal("❌ Database connection failed:", err)
 	}
 
-	// Ensure SERVICE environment variables are set
-	if ServicePort == "" || ServiceName == "" {
-		log.Fatal("❌ Error: Missing environment variables for service")
-	}
-
 	fmt.Printf("🚀 %s is running on port: %s\n", ServiceName, ServicePort)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", ServicePort),

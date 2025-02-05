@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -25,4 +26,9 @@ func PrintEnvVariables() {
 	fmt.Printf("CUSTOMER_POSTGRES_DBHost: %s\n", DBHost)
 	fmt.Printf("CUSTOMER_POSTGRES_ServicePort: %s\n", ServicePort)
 	fmt.Printf("CUSTOMER_POSTGRES_ServiceName: %s\n", ServiceName)
+
+	// Ensure SERVICE environment variables are set
+	if ServicePort == "" || ServiceName == "" {
+		log.Fatal("❌ Error: Missing environment variables for service")
+	}
 }

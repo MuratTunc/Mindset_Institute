@@ -14,7 +14,7 @@ RUN go mod download
 COPY cmd/api /app/cmd/api
 
 # Build the Go application as a static binary
-RUN go build -o authenticationServiceApp ./cmd/api
+RUN go build -o userServiceApp ./cmd/api
 
 # Final lightweight image
 FROM alpine:latest
@@ -23,7 +23,7 @@ FROM alpine:latest
 WORKDIR /app
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /app/authenticationServiceApp .
+COPY --from=builder /app/userServiceApp .
 
 # Run the binary
-CMD ["/app/authenticationServiceApp"]
+CMD ["/app/userServiceApp"]
