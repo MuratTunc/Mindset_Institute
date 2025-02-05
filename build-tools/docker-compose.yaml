@@ -9,11 +9,12 @@ services:
     container_name: ${CUSTOMER_SERVICE_CONTAINER_NAME}
     restart: always
     depends_on:
-      - customer-db
+      customer-db:
+        condition: service_healthy  # Wait for DB to be ready
     ports:
       - "${CUSTOMER_SERVICE_PORT}:${CUSTOMER_SERVICE_PORT}"
     env_file:
-      - .env  # Make sure environment variables are loaded
+      - .env  # Load environment variables
 
   customer-db:
     image: postgres:15
@@ -24,7 +25,12 @@ services:
       POSTGRES_PASSWORD: ${CUSTOMER_POSTGRES_DB_PASSWORD}
       POSTGRES_DB: ${CUSTOMER_POSTGRES_DB_NAME}
     ports:
-      - "${CUSTOMER_POSTGRES_DB_PORT}:${CUSTOMER_POSTGRES_DB_PORT}"
+      - "${CUSTOMER_POSTGRES_DB_PORT}:5432"
+    healthcheck:  # Ensure PostgreSQL is ready before starting customer-service
+      test: ["CMD", "pg_isready", "-U", "${CUSTOMER_POSTGRES_DB_USER}", "-d", "${CUSTOMER_POSTGRES_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - customer_db_data:/var/lib/postgresql/data
 

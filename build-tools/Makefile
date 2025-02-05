@@ -2,7 +2,7 @@
 ENV_FILE := .env
 
 ## up_build: Stops and removes all running containers, builds the project and starts docker-compose
-build: stop_all_containers down build_authentication_service
+build: stop_all_containers down build_customer_service
 	echo "🚀 Building (when required) and starting docker images with environment variables..."
 	docker-compose up --build -d
 	echo "✅ Docker images built and started!"
@@ -30,11 +30,11 @@ down:
 	docker-compose down
 	echo "✅ Done!"
 
-## build_authentication_service: Builds the authentication-service binary as a Linux executable
-build_authentication_service:
-	echo "🚀 Building authentication-service binary..."
+## build_customer_service: Builds the customer-service binary as a Linux executable
+build_customer_service:
+	echo "🚀 Building customer-service binary..."
 	@set -a; . ./$(ENV_FILE); set +a; \
-	cd ../authentication-service && $$GOFULLPATH build -o $$AUTHENTICATION_SERVICE_BINARY ./cmd/api
+	cd ../customer-service && $$GOFULLPATH build -o $$CUSTOMER_SERVICE_BINARY ./cmd/api
 	echo "✅ Done!"
 
 ## logs: Shows logs from all services

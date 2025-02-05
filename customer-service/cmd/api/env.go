@@ -6,23 +6,23 @@ import (
 )
 
 var (
-	DBHost      = os.Getenv("DB_HOST")     // "auth-db"
-	DBUser      = os.Getenv("DB_USER")     // "auth_user"
-	DBPassword  = os.Getenv("DB_PASSWORD") // "auth_password"
-	DBName      = os.Getenv("DB_NAME")     // "auth_db"
-	DBPort      = os.Getenv("DB_PORT")     // "5432"
-	ServicePort = os.Getenv("AUTHENTICATION_SERVICE_PORT")
-	ServiceName = os.Getenv("AUTHENTICATION_SERVICE_NAME")
+	DBHost      = os.Getenv("CUSTOMER_POSTGRES_DB_HOST")
+	DBUser      = os.Getenv("CUSTOMER_POSTGRES_DB_USER")
+	DBPassword  = os.Getenv("CUSTOMER_POSTGRES_DB_PASSWORD")
+	DBName      = os.Getenv("CUSTOMER_POSTGRES_DB_NAME")
+	DBPort      = os.Getenv("CUSTOMER_POSTGRES_DB_PORT")
+	ServicePort = os.Getenv("CUSTOMER_SERVICE_PORT")
+	ServiceName = os.Getenv("CUSTOMER_SERVICE_NAME")
 )
 
 // PrintEnvVariables prints all environment variables for debugging
 func PrintEnvVariables() {
 	fmt.Println("🔧 Loaded Environment Variables:")
-	fmt.Printf("DBUser: %s\n", DBUser)
-	fmt.Printf("DBPassword: %s\n", DBPassword)
-	fmt.Printf("DBName: %s\n", DBName)
-	fmt.Printf("DBPort: %s\n", DBPort)
-	fmt.Printf("DBHost: %s\n", DBHost)
-	fmt.Printf("ServicePort: %s\n", ServicePort)
-	fmt.Printf("ServiceName: %s\n", ServiceName)
+	fmt.Printf("CUSTOMER_POSTGRES_DBUser: %s\n", DBUser)
+	fmt.Printf("CUSTOMER_POSTGRES_DBPassword: %s\n", DBPassword)
+	fmt.Printf("CUSTOMER_POSTGRES_DBName: %s\n", DBName)
+	fmt.Printf("CUSTOMER_POSTGRES_DBPort: %s\n", DBPort)
+	fmt.Printf("CUSTOMER_POSTGRES_DBHost: %s\n", DBHost)
+	fmt.Printf("CUSTOMER_POSTGRES_ServicePort: %s\n", ServicePort)
+	fmt.Printf("CUSTOMER_POSTGRES_ServiceName: %s\n", ServiceName)
 }
