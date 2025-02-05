@@ -18,17 +18,17 @@ var (
 
 // PrintEnvVariables prints all environment variables for debugging
 func PrintEnvVariables() {
-	fmt.Println("🔧 Loaded Environment Variables:")
-	fmt.Printf("USER_POSTGRES_DBUser: %s\n", DBUser)
-	fmt.Printf("USER_POSTGRES_DBPassword: %s\n", DBPassword)
-	fmt.Printf("USER_POSTGRES_DBName: %s\n", DBName)
-	fmt.Printf("USER_POSTGRES_DBPort: %s\n", DBPort)
-	fmt.Printf("USER_POSTGRES_DBHost: %s\n", DBHost)
-	fmt.Printf("USER_POSTGRES_ServicePort: %s\n", ServicePort)
-	fmt.Printf("USER_POSTGRES_ServiceName: %s\n", ServiceName)
+	fmt.Println("🔧 Loaded Environment Variables-USER_SERVICE")
+	fmt.Printf("DBUser: %s\n", DBUser)
+	fmt.Printf("DBPassword: %s\n", DBPassword)
+	fmt.Printf("DBName: %s\n", DBName)
+	fmt.Printf("DBPort: %s\n", DBPort)
+	fmt.Printf("DBHost: %s\n", DBHost)
+	fmt.Printf("ServicePort: %s\n", ServicePort)
+	fmt.Printf("ServiceName: %s\n", ServiceName)
 
 	// Ensure SERVICE environment variables are set
 	if ServicePort == "" || ServiceName == "" {
-		log.Fatal("❌ Error: Missing environment variables for service")
+		log.Fatal("❌ Error: Missing environment variables for USER_SERVICE")
 	}
 }

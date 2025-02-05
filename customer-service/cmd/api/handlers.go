@@ -22,6 +22,25 @@ const (
 	LoginSuccess          = "Login successful"
 )
 
+// HealthCheckHandler checks the database connection using GORM
+func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	sqlDB, err := app.DB.DB() // Get *sql.DB from *gorm.DB
+	if err != nil {
+		http.Error(w, "Failed to get database instance", http.StatusInternalServerError)
+		return
+	}
+
+	// Execute a lightweight query to check DB connectivity
+	err = sqlDB.Ping()
+	if err != nil {
+		http.Error(w, "Database connection failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 // HashPassword hashes a password using bcrypt
 func (app *Config) HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

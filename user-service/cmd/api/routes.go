@@ -25,9 +25,12 @@ func (app *Config) routes() http.Handler {
 	}))
 
 	// Middleware
-	mux.Use(middleware.Heartbeat("/ping")) // Health check endpoint
+	mux.Use(middleware.Heartbeat("/ping")) // Basic health check
 	mux.Use(middleware.Recoverer)          // Recover from panics gracefully
 	mux.Use(middleware.Logger)             // Log all requests
+
+	// Custom health check endpoint
+	mux.Get("/health", app.HealthCheckHandler)
 
 	// Routes for authentication
 	mux.Post("/register", app.CreateUserHandler)            // Handle registration
