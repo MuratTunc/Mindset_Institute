@@ -32,3 +32,11 @@ openssl rand -base64 32
 ## user-db
 sudo docker exec -it <container id> psql -U user -d user_db
 
+
+
+## see ttable
+sudo docker exec -it e25ff201e765 bash
+psql -U user -d user_db
+SELECT * FROM users;
+
+
