@@ -31,7 +31,6 @@ services:
     env_file:
       - .env  # Load environment variables
 
-
   salestracking-service:
     build:
       context: ./../salestracking-service
@@ -47,7 +46,6 @@ services:
     env_file:
       - .env  # Load environment variables           
 
-
   user-db:
     image: postgres:15
     container_name: user-db
@@ -58,7 +56,7 @@ services:
       POSTGRES_DB: ${USER_POSTGRES_DB_NAME}
     ports:
       - "${USER_POSTGRES_DB_PORT}:5432"
-    healthcheck:  # Ensure PostgreSQL is ready before starting customer-service
+    healthcheck:  # Ensure PostgreSQL is ready before starting user-service
       test: ["CMD", "pg_isready", "-U", "${USER_POSTGRES_DB_USER}", "-d", "${USER_POSTGRES_DB_NAME}"]
       interval: 10s
       timeout: 5s
@@ -94,7 +92,7 @@ services:
       POSTGRES_DB: ${SALESTRACKING_POSTGRES_DB_NAME}
     ports:
       - "${SALESTRACKING_POSTGRES_DB_PORT}:5432"
-    healthcheck:  # Ensure PostgreSQL is ready before starting customer-service
+    healthcheck:  # Ensure PostgreSQL is ready before starting salestracking-service
       test: ["CMD", "pg_isready", "-U", "${SALESTRACKING_POSTGRES_DB_USER}", "-d", "${SALESTRACKING_POSTGRES_DB_NAME}"]
       interval: 10s
       timeout: 5s

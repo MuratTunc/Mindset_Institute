@@ -296,11 +296,17 @@ func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract user ID from the URL
 	id := chi.URLParam(r, "id")
 
-	// Find the user to delete
-	var user User
-	result := app.DB.Delete(&user, id)
+	// Ensure that the ID is valid (non-empty)
+	if id == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
 
-	// If no rows were affected, user was not found
+	// Find the user to delete by ID
+	var user User
+	result := app.DB.Where("id = ?", id).Delete(&user)
+
+	// If no rows were affected, the user was not found
 	if result.RowsAffected == 0 {
 		http.Error(w, ErrUserNotFound, http.StatusNotFound)
 		return

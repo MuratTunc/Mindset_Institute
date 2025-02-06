@@ -23,7 +23,7 @@ func connectToDB() (*gorm.DB, error) {
 	var err error
 
 	// Retry logic: Try connecting 5 times with a 5-second delay
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 10; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err == nil {
 			fmt.Println("✅ DATABASE connection success!")

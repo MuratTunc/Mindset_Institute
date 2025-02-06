@@ -2,14 +2,21 @@
 ENV_FILE := .env
 
 ## up_build: Stops and removes all running containers, builds the project and starts docker-compose
-build: stop_down_all_containers check_postgres build_user_service build_customer_service build_salestracking_service
+build: clean_volumes stop_down_all_containers check_postgres build_user_service build_customer_service build_salestracking_service
 	echo "🚀 Building (when required) and starting docker images with environment variables..."
 	docker-compose up --build -d
 	echo "✅ Docker images built and started!"
+	echo "✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅"
 	echo "📜 Fetching logs for all services..."
 	docker-compose logs --tail=20
 	echo "🚀 Runnig Containers:"
 	docker ps
+
+## clean_volumes: Removes all volumes (database data) to start fresh
+clean_volumes:
+	echo "🧹 Cleaning up all database volumes..."
+	docker-compose down -v
+	echo "✅ All volumes removed!"
 
 ## stop_down_all_containers: Stops and removes all running Docker containers (if any exist)
 stop_down_all_containers:

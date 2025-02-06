@@ -9,8 +9,8 @@ then
 fi
 
 # Define user details
-USERNAME="testuser3"
-MAILADDRESS="testuser3@example.com"
+USERNAME="testuser1"
+MAILADDRESS="testuser1@example.com"
 PASSWORD="TestPassword123"
 NEW_PASSWORD="NewTestPassword123"
 ROLE="Admin"
@@ -24,51 +24,37 @@ UPDATE_USER_URL="$BASE_URL/user"
 UPDATE_PASSWORD_URL="$BASE_URL/update-password"
 DELETE_USER_URL="$BASE_URL/user"
 
-# Function to check if the user exists
-check_user_exists() {
+# Function to check if the user exists (using the registration endpoint)
+register_user() {
   echo "Checking if user exists..."
 
-  RESPONSE=$(curl -s -X GET "$USER_URL?username=$USERNAME")
-
-  # Validate if the response contains a user ID
-  if echo "$RESPONSE" | jq empty > /dev/null 2>&1; then
-    USER_ID=$(echo "$RESPONSE" | jq -r '.ID')
-
-    if [[ "$USER_ID" != "null" && -n "$USER_ID" ]]; then
-      echo "User already exists with ID: $USER_ID"
-      return 0
-    fi
-  fi
-
-  echo "User does not exist."
-  return 1
+  # Prepare user data for the registration request (JSON format)
+  USER_DATA=$(cat <<EOF
+{
+  "username": "$USERNAME",
+  "mail_address": "$MAILADDRESS",
+  "password": "$USER_PASSWORD",
+  "role": "$ROLE"
 }
+EOF
+)
 
-# Function to register the user
-register_user() {
-  echo "Registering new user..."
+  # Send POST request to the /register route to register.
+  RESPONSE=$(curl -s -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d "$USER_DATA")
 
-  REGISTER_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d '{
-    "username": "'$USERNAME'",
-    "mailAddress": "'$MAILADDRESS'",
-    "password": "'$PASSWORD'",
-    "role": "'$ROLE'"
-  }')
-
-  HTTP_BODY=$(echo "$REGISTER_RESPONSE" | sed '$ d')
-  HTTP_STATUS=$(echo "$REGISTER_RESPONSE" | tail -n1)
-
-  echo "Registration response: $HTTP_BODY"
-  echo "HTTP Status Code: $HTTP_STATUS"
-
-  if [ "$HTTP_STATUS" -eq 201 ]; then
-    echo "User registered successfully!"
-  elif [ "$HTTP_STATUS" -eq 409 ]; then
-    echo "User already exists. Proceeding with login..."
-  else
-    echo "Registration failed with status code $HTTP_STATUS. Response: $HTTP_BODY"
-    exit 1
+  HTTP_BODY=$(echo "$RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+  
+  
+  # Check if the response contains a "User already exists" message
+  if echo "$RESPONSE" | grep -q "User already exists"; then
+    echo "User already exists."
+    return 0
   fi
+
+  # If no "User already exists" message, user does not exist and was created
+  echo "User does not exist. Proceeding with registration."
+  return 1
 }
 
 # Function to log in and get JWT token
@@ -80,7 +66,7 @@ login_user() {
     "password": "'$PASSWORD'"
   }')
 
-  echo "Login response: $LOGIN_RESPONSE"
+  echo "Login response: $LOGIN_RESPONSE"  # Add this line to print the raw response
 
   JWT_TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token')
 
@@ -91,6 +77,7 @@ login_user() {
 
   echo "Login successful. JWT token received."
 }
+
 
 # Function to get user details
 get_user_details() {
@@ -135,7 +122,6 @@ update_user() {
   echo "User updated successfully."
 }
 
-
 # Function to update user password
 update_password() {
   echo "Updating user password..."
@@ -160,12 +146,12 @@ update_password() {
   echo "Password updated successfully."
 }
 
-
 # Function to delete user
 delete_user() {
   echo "Deleting the user..."
 
-  DELETE_RESPONSE=$(curl -s -w "\n%{http_code}" -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN")
+  # Use the DELETE_USER_URL variable and append the user ID directly
+  DELETE_RESPONSE=$(curl -s -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $TOKEN")
 
   HTTP_BODY=$(echo "$DELETE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1)
@@ -183,12 +169,8 @@ delete_user() {
 
 ### **🚀 EXECUTION FLOW 🚀**
 
-# Check if user exists
-if check_user_exists; then
-  echo "Skipping registration since user already exists."
-else
-  register_user
-fi
+# register_user
+register_user
 
 # Log in
 login_user
