@@ -8,6 +8,7 @@ type User struct {
 	Username    string    `gorm:"unique;not null"`
 	MailAddress string    `gorm:"unique;not null"`
 	Password    string    `gorm:"not null"`
+	Role        string    `gorm:"not null"` // Admin or Sales Representative
 	Activated   bool      `gorm:"default:false"`
 	LoginStatus bool      `gorm:"default:false"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`

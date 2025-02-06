@@ -32,15 +32,19 @@ func (app *Config) routes() http.Handler {
 	// Custom health check endpoint
 	mux.Get("/health", app.HealthCheckHandler)
 
-	// Routes for authentication
-	mux.Post("/register", app.CreateUserHandler)            // Handle registration
-	mux.Post("/login", app.LoginUserHandler)                // Handle login
-	mux.Post("/update-password", app.UpdatePasswordHandler) // New password update route
+	// Public Routes (No authentication required)
+	mux.Post("/register", app.CreateUserHandler) // Handle user registration
+	mux.Post("/login", app.LoginUserHandler)     // Handle user login
 
-	// CRUD operations for users
-	mux.Get("/user", app.GetUserHandler)       // Retrieve a user by ID (query parameter)
-	mux.Put("/user", app.UpdateUserHandler)    // Update user by ID (query parameter)
-	mux.Delete("/user", app.DeleteUserHandler) // Delete user by ID (query parameter)
+	// Protected Routes (Require JWT authentication)
+	mux.Group(func(mux chi.Router) {
+		mux.Use(AuthMiddleware) // Apply JWT authentication middleware
+
+		mux.Post("/update-password", app.UpdatePasswordHandler) // Password update (requires authentication)
+		mux.Get("/user", app.GetUserHandler)                    // Retrieve a user by ID
+		mux.Put("/user/{id}", app.UpdateUserHandler)            // Update user by ID
+		mux.Delete("/user/{id}", app.DeleteUserHandler)         // Delete user by ID
+	})
 
 	return mux
 }

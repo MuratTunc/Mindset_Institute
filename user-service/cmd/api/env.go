@@ -14,6 +14,7 @@ var (
 	DBPort      = os.Getenv("USER_POSTGRES_DB_PORT")
 	ServicePort = os.Getenv("USER_SERVICE_PORT")
 	ServiceName = os.Getenv("USER_SERVICE_NAME")
+	JWTSecret   = os.Getenv("USER_SERVICE_JWT_SECRET")
 )
 
 // PrintEnvVariables prints all environment variables for debugging
@@ -26,6 +27,7 @@ func PrintEnvVariables() {
 	fmt.Printf("DBHost: %s\n", DBHost)
 	fmt.Printf("ServicePort: %s\n", ServicePort)
 	fmt.Printf("ServiceName: %s\n", ServiceName)
+	fmt.Printf("JWTSecret: %s\n", JWTSecret)
 
 	// Ensure SERVICE environment variables are set
 	if ServicePort == "" || ServiceName == "" {

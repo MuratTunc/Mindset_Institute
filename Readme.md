@@ -17,3 +17,18 @@
 curl -X GET http://localhost:8080/health
 curl -X GET http://localhost:8081/health
 curl -X GET http://localhost:8082/health
+
+
+## Docker services logs
+
+docker logs user-service
+docker logs customer-service
+docker logs salestracking-service
+
+## Generating sample jwt-secret key
+openssl rand -base64 32
+
+
+## user-db
+sudo docker exec -it <container id> psql -U user -d user_db
+
