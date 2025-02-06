@@ -77,7 +77,7 @@ login_user() {
 get_user_details() {
   echo "Fetching user details..."
 
-  RESPONSE=$(curl -s -X GET "$USER_URL?username=$USERNAME" -H "Authorization: Bearer $JWT_TOKEN")
+  RESPONSE=$(curl -s -X GET "$USER_URL?username=updateduser" -H "Authorization: Bearer $JWT_TOKEN")
 
   echo "$RESPONSE" | jq .
 
@@ -121,7 +121,7 @@ update_password() {
   echo "Updating user password..."
 
   UPDATE_PASSWORD_RESPONSE=$(curl -s -w "%{http_code}" -X POST "$UPDATE_PASSWORD_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "username": "'$USERNAME'",
+    "username": "updateduser",
     "new_password": "'$NEW_PASSWORD'"
   }')
 

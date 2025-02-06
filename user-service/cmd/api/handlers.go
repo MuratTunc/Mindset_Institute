@@ -111,7 +111,7 @@ func (app *Config) CheckPassword(hashedPassword, password string) bool {
 }
 
 // CreateUserHandler inserts a new user with a hashed password using GORM
-// CreateUserHandler inserts a new user with a hashed password using GORM
+
 func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -201,6 +201,7 @@ func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdatePasswordHandler updates a user's password if they exist
+// UpdatePasswordHandler updates a user's password if they exist
 func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
 		Username    string `json:"username"`
@@ -214,13 +215,26 @@ func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Find the user
+	// Log the incoming request for debugging
+	fmt.Println("Received request to update password for username:", requestData.Username)
+
+	// Find the user by username
 	var user User
 	result := app.DB.Where("username = ?", requestData.Username).First(&user)
+
+	// Log the result of the query to help debug
 	if result.Error != nil {
-		http.Error(w, ErrUserNotFound, http.StatusNotFound)
+		if result.Error == gorm.ErrRecordNotFound {
+			http.Error(w, ErrUserNotFound, http.StatusNotFound)
+			fmt.Println("User not found:", requestData.Username) // Add log for failed query
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+
+	// Log the found user for debugging
+	fmt.Println("Found user:", user)
 
 	// Hash new password
 	hashedPassword, err := app.HashPassword(requestData.NewPassword)
@@ -232,6 +246,9 @@ func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request)
 	// Update the password
 	user.Password = hashedPassword
 	app.DB.Save(&user)
+
+	// Log successful password update
+	fmt.Println("Password updated for user:", requestData.Username)
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Password updated successfully")
