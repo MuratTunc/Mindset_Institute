@@ -111,54 +111,56 @@ func (app *Config) CheckPassword(hashedPassword, password string) bool {
 }
 
 // CreateUserHandler inserts a new user with a hashed password using GORM
+// CreateUserHandler inserts a new user with a hashed password using GORM
 func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
-	// Validate role
-	if user.Role != "Admin" && user.Role != "Sales Representative" {
-		http.Error(w, "Invalid role. Must be 'Admin' or 'Sales Representative'", http.StatusBadRequest)
+	// Ensure MailAddress is provided
+	if user.MailAddress == "" {
+		http.Error(w, "Mail address cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	// Check if user already exists (by username or mail address)
+	// Check if user already exists (by username OR mail address)
 	var existingUser User
 	if err := app.DB.Where("username = ? OR mail_address = ?", user.Username, user.MailAddress).First(&existingUser).Error; err == nil {
-		http.Error(w, "User already exists", http.StatusConflict) // 409 Conflict
+		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
 
-	// Hash password
+	// Hash the password before saving
 	hashedPassword, err := app.HashPassword(user.Password)
 	if err != nil {
-		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+		http.Error(w, ErrHashingPassword, http.StatusInternalServerError)
 		return
 	}
 	user.Password = hashedPassword
 
-	// Save user in DB
+	// Insert user into database using GORM
 	result := app.DB.Create(&user)
 	if result.Error != nil {
-		http.Error(w, "Error inserting user", http.StatusInternalServerError)
+		http.Error(w, ErrInsertingUser, http.StatusInternalServerError)
 		return
 	}
 
-	// Generate JWT token for the new user
+	// Generate JWT token
 	token, err := GenerateJWT(user.Username, user.Role)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
-	// Send token in the response
+	// Send response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User created successfully",
-		"token":   token,
+		"message":     UserCreatedSuccess,
+		"token":       token,
+		"mailAddress": user.MailAddress, // Include mail address in the response
 	})
 }
 
@@ -240,6 +242,7 @@ func (app *Config) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	id := r.URL.Query().Get("id")
 
+	// Fetch the user by ID from the database
 	result := app.DB.First(&user, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -250,7 +253,15 @@ func (app *Config) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the MailAddress is empty and log a warning or handle appropriately
+	if user.MailAddress == "" {
+		// You can log this if necessary or handle the empty field case
+		fmt.Println("Warning: User has no MailAddress.")
+	}
+
+	// Respond with user data in JSON format
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
 

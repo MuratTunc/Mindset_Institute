@@ -26,35 +26,29 @@ DELETE_USER_URL="$BASE_URL/user"
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
-  echo "Checking if user exists..."
+  echo "Registering new user..."
 
-  # Prepare user data for the registration request (JSON format)
-  USER_DATA=$(cat <<EOF
-{
-  "username": "$USERNAME",
-  "mail_address": "$MAILADDRESS",
-  "password": "$USER_PASSWORD",
-  "role": "$ROLE"
-}
-EOF
-)
+  REGISTER_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d '{
+    "username": "'$USERNAME'",
+    "mailAddress": "'$MAILADDRESS'",
+    "password": "'$PASSWORD'",
+    "role": "'$ROLE'"
+  }')
 
-  # Send POST request to the /register route to register.
-  RESPONSE=$(curl -s -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d "$USER_DATA")
+  HTTP_BODY=$(echo "$REGISTER_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$REGISTER_RESPONSE" | tail -n1)
 
-  HTTP_BODY=$(echo "$RESPONSE" | sed '$ d')
-  HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-  
-  
-  # Check if the response contains a "User already exists" message
-  if echo "$RESPONSE" | grep -q "User already exists"; then
+  echo "Registration response: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  if [ "$HTTP_STATUS" -eq 200 ]; then
+    echo "User registered successfully!"
+  elif [ "$HTTP_STATUS" -eq 409 ]; then
     echo "User already exists."
-    return 0
+  else
+    echo "Registration failed with status code $HTTP_STATUS. Response: $HTTP_BODY"
+    exit 1
   fi
-
-  # If no "User already exists" message, user does not exist and was created
-  echo "User does not exist. Proceeding with registration."
-  return 1
 }
 
 # Function to log in and get JWT token
