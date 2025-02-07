@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -141,6 +142,9 @@ func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = hashedPassword
 
+	//  Sets Activated = true for every new user.
+	user.Activated = true
+
 	// Insert user into database using GORM
 	result := app.DB.Create(&user)
 	if result.Error != nil {
@@ -164,6 +168,7 @@ func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// LoginUserHandler verifies user credentials using GORM
 // LoginUserHandler verifies user credentials using GORM
 func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
@@ -195,9 +200,47 @@ func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Update login_status to true
+	storedUser.LoginStatus = true
+	app.DB.Save(&storedUser)
+
 	// Send token to client
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	json.NewEncoder(w).Encode(map[string]string{
+		"token":       token,
+		"message":     "Login successful",
+		"loginStatus": "true",
+	})
+}
+
+// LogoutUserHandler sets login_status to false
+func (app *Config) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the username from JWT token
+	username := r.Header.Get("X-Username") // This is set in the AuthMiddleware
+
+	if username == "" {
+		http.Error(w, "Unauthorized: Missing username in request", http.StatusUnauthorized)
+		return
+	}
+
+	// Find user in DB
+	var user User
+	result := app.DB.Where("username = ?", username).First(&user)
+	if result.Error != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	// Set login_status to false
+	user.LoginStatus = false
+	app.DB.Save(&user)
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message":     "Logout successful",
+		"loginStatus": "false",
+	})
 }
 
 // UpdatePasswordHandler updates a user's password if they exist
@@ -374,4 +417,38 @@ func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Respond with success message
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "User deleted successfully")
+}
+
+func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["id"] //Takes a user ID from the URL (/deactivate-user/{id}).
+
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	//  Finds the user in the database.
+	var user User
+	result := app.DB.First(&user, userID)
+	if result.Error != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Set Activated to false
+	user.Activated = false
+
+	// Update the user in the database
+	if err := app.DB.Save(&user).Error; err != nil {
+		http.Error(w, "Failed to deactivate user", http.StatusInternalServerError)
+		return
+	}
+
+	// Send success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User deactivated successfully",
+		"user_id": userID,
+	})
 }

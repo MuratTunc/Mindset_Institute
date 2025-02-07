@@ -44,6 +44,13 @@ func (app *Config) routes() http.Handler {
 		mux.Get("/user", app.GetUserHandler)                    // Retrieve a user by ID
 		mux.Put("/user/{id}", app.UpdateUserHandler)            // Update user by ID
 		mux.Delete("/user/{id}", app.DeleteUserHandler)         // Delete user by ID
+
+		// Calls LogoutUserHandler to set login_status = false in DB.
+		// Allows only authenticated users to log out.
+		mux.Post("/logout", app.LogoutUserHandler) // Logout route
+
+		mux.Put("/deactivate-user/{id}", app.DeactivateUserHandler) // Deactivate user by ID
+
 	})
 
 	return mux

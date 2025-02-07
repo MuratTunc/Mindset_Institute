@@ -23,6 +23,7 @@ USER_URL="$BASE_URL/user"
 UPDATE_USER_URL="$BASE_URL/user"
 UPDATE_PASSWORD_URL="$BASE_URL/update-password"
 DELETE_USER_URL="$BASE_URL/user"
+DEACTIVATE_USER_URL="$BASE_URL/user"
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
@@ -91,6 +92,28 @@ get_user_details() {
   echo "User ID retrieved: $USER_ID"
 }
 
+# Function to deactivate user
+deactivate_user() {
+  echo "Deactivating the user..."
+
+  # Use the DEACTIVATE_USER_URL variable and append the user ID directly
+  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+
+  HTTP_BODY=$(echo "$DEACTIVATE_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$DEACTIVATE_RESPONSE" | tail -n1)
+
+  echo "Deactivate response: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  if [ "$HTTP_STATUS" -ne 200 ]; then
+    echo "Error: User deactivation failed."
+    exit 1
+  fi
+
+  echo "User deactivated successfully."
+}
+
+
 # Function to update user details
 update_user() {
   echo "Updating user details..."
@@ -145,7 +168,7 @@ delete_user() {
   echo "Deleting the user..."
 
   # Use the DELETE_USER_URL variable and append the user ID directly
-  DELETE_RESPONSE=$(curl -s -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $TOKEN")
+  DELETE_RESPONSE=$(curl -s -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN")
 
   HTTP_BODY=$(echo "$DELETE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1)
@@ -171,6 +194,9 @@ login_user
 
 # Fetch user details
 get_user_details
+
+# Deactivate user
+deactivate_user
 
 # Update user details
 update_user
