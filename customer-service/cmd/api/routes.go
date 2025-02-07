@@ -25,16 +25,25 @@ func (app *Config) routes() http.Handler {
 	}))
 
 	// Middleware
-	mux.Use(middleware.Heartbeat("/ping")) // Health check endpoint
+	mux.Use(middleware.Heartbeat("/ping")) // Basic health check
 	mux.Use(middleware.Recoverer)          // Recover from panics gracefully
 	mux.Use(middleware.Logger)             // Log all requests
 
 	// Custom health check endpoint
 	mux.Get("/health", app.HealthCheckHandler)
 
-	// Routes for authentication
-	mux.Post("/register", app.CreateUserHandler) // Handle registration
-	mux.Post("/login", app.LoginUserHandler)     // Handle login
+	// Public Routes (No authentication required)
+	mux.Post("/register", app.CreateCustomerHandler) // Handle customer registration
+	mux.Post("/login", app.LoginCustomerHandler)     // Handle customer login
+
+	mux.Get("/customer", app.GetCustomerHandler)                        // Retrieve a customer by ID
+	mux.Post("/update-password", app.UpdatePasswordHandler)             // Password update (requires authentication)
+	mux.Put("/update-customer/{id}", app.UpdateCustomerHandler)         // Update customer by ID
+	mux.Put("/deactivate-customer/{id}", app.DeactivateCustomerHandler) // Deactivate customer by ID
+	mux.Put("/activate-customer/{id}", app.ActivateCustomerHandler)     // Activate customer by ID
+	mux.Put("/update-email/{id}", app.UpdateEmailHandler)               // Update customer's email address
+	mux.Put("/update-note", app.UpdateNoteHandler)
+	mux.Delete("/delete-customer/{id}", app.DeleteCustomerHandler) // Delete customer by ID
 
 	return mux
 }

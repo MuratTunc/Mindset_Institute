@@ -17,7 +17,7 @@ type Config struct {
 // connectToDB retries connecting to PostgreSQL until it succeeds or fails after retries
 func connectToDB() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		DBHost, DBUser, DBPassword, DBName, DBPort)
+		DBHost, DBCustomer, DBPassword, DBName, DBPort)
 
 	var db *gorm.DB
 	var err error
@@ -38,7 +38,7 @@ func connectToDB() (*gorm.DB, error) {
 	}
 
 	// AutoMigrate to create tables
-	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&Customer{})
 	if err != nil {
 		log.Fatalf("❌ Failed to migrate database: %v", err)
 	}

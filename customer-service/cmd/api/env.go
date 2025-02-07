@@ -8,7 +8,7 @@ import (
 
 var (
 	DBHost      = os.Getenv("CUSTOMER_POSTGRES_DB_HOST")
-	DBUser      = os.Getenv("CUSTOMER_POSTGRES_DB_USER")
+	DBCustomer  = os.Getenv("CUSTOMER_POSTGRES_DB_CUSTOMER")
 	DBPassword  = os.Getenv("CUSTOMER_POSTGRES_DB_PASSWORD")
 	DBName      = os.Getenv("CUSTOMER_POSTGRES_DB_NAME")
 	DBPort      = os.Getenv("CUSTOMER_POSTGRES_DB_PORT")
@@ -19,7 +19,7 @@ var (
 // PrintEnvVariables prints all environment variables for debugging
 func PrintEnvVariables() {
 	fmt.Println("🔧 Loaded Environment Variables-CUSTOMER_SERVICE")
-	fmt.Printf("DBUser: %s\n", DBUser)
+	fmt.Printf("DBCustomer: %s\n", DBCustomer)
 	fmt.Printf("DBPassword: %s\n", DBPassword)
 	fmt.Printf("DBName: %s\n", DBName)
 	fmt.Printf("DBPort: %s\n", DBPort)
