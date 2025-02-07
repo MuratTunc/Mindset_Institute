@@ -23,11 +23,12 @@ USER_URL="$BASE_URL/user"
 UPDATE_USER_URL="$BASE_URL/user"
 UPDATE_PASSWORD_URL="$BASE_URL/update-password"
 DELETE_USER_URL="$BASE_URL/user"
-DEACTIVATE_USER_URL="$BASE_URL/user"
+DEACTIVATE_USER_URL="$BASE_URL/deactivate-user"
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
-  echo "Registering new user..."
+  echo "Test-1: REGISTER NEW USER"
+  echo "--------------------------"
 
   REGISTER_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d '{
     "username": "'$USERNAME'",
@@ -54,7 +55,8 @@ register_user() {
 
 # Function to log in and get JWT token
 login_user() {
-  echo "Logging in with user credentials..."
+ echo "Test-2: LOGIN USER"
+ echo "--------------------------"
 
   LOGIN_RESPONSE=$(curl -s -X POST "$LOGIN_URL" -H "Content-Type: application/json" -d '{
     "username": "'$USERNAME'",
@@ -76,7 +78,8 @@ login_user() {
 
 # Function to get user details
 get_user_details() {
-  echo "Fetching user details..."
+  echo "Test-3: FETCH USER DETAILS"
+  echo "--------------------------"
 
   RESPONSE=$(curl -s -X GET "$USER_URL?username=updateduser" -H "Authorization: Bearer $JWT_TOKEN")
 
@@ -94,7 +97,10 @@ get_user_details() {
 
 # Function to deactivate user
 deactivate_user() {
-  echo "Deactivating the user..."
+  echo "Test-4: DEACTIVATE USER"
+  echo "--------------------------"
+  echo "USER ID: $USER_ID"
+  echo "URL:$DEACTIVATE_USER_URL/$USER_ID"
 
   # Use the DEACTIVATE_USER_URL variable and append the user ID directly
   DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
@@ -116,7 +122,8 @@ deactivate_user() {
 
 # Function to update user details
 update_user() {
-  echo "Updating user details..."
+  echo "Test-5: UPDATE USER"
+  echo "--------------------------"
 
   UPDATE_USER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
   "username": "updateduser",
@@ -141,7 +148,8 @@ update_user() {
 
 # Function to update user password
 update_password() {
-  echo "Updating user password..."
+  echo "Test-6: UPDATE NEW PASSWORD"
+  echo "--------------------------"
 
   UPDATE_PASSWORD_RESPONSE=$(curl -s -w "%{http_code}" -X POST "$UPDATE_PASSWORD_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
     "username": "updateduser",
@@ -165,10 +173,12 @@ update_password() {
 
 # Function to delete user
 delete_user() {
-  echo "Deleting the user..."
+  echo "Test-6: DELETE USER"
+  echo "--------------------------"
+  echo "USER ID=$USER_ID"
 
   # Use the DELETE_USER_URL variable and append the user ID directly
-  DELETE_RESPONSE=$(curl -s -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN")
+  DELETE_RESPONSE=$(curl -s -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
 
   HTTP_BODY=$(echo "$DELETE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1)
@@ -211,4 +221,4 @@ get_user_details
 delete_user
 
 # Final message
-echo "Test script finished successfully!"
+echo "ALL TESTS ARE DONE!!!"

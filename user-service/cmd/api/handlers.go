@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt"
-	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -364,10 +363,19 @@ func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteUserHandler deletes a user by ID
 func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID from the URL path parameter
-	id := chi.URLParam(r, "id")
 
-	// Ensure that the ID is valid (non-empty)
+	// Extract user ID by splitting the path
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 2 {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// The user ID is expected to be the second segment of the URL path
+	id := segments[len(segments)-1]
+	fmt.Println("Extracted User ID:", id)
+
+	// Check if the ID is valid
 	if id == "" {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
@@ -420,17 +428,27 @@ func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userID := vars["id"] //Takes a user ID from the URL (/deactivate-user/{id}).
 
-	if userID == "" {
+	// Extract user ID by splitting the path
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 2 {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// The user ID is expected to be the second segment of the URL path
+	id := segments[len(segments)-1]
+	fmt.Println("Extracted User ID:", id)
+
+	// Check if the ID is valid
+	if id == "" {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	//  Finds the user in the database.
 	var user User
-	result := app.DB.First(&user, userID)
+	result := app.DB.First(&user, id)
 	if result.Error != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -449,6 +467,6 @@ func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "User deactivated successfully",
-		"user_id": userID,
+		"user_id": id,
 	})
 }
