@@ -169,7 +169,6 @@ func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // LoginUserHandler verifies user credentials using GORM
-// LoginUserHandler verifies user credentials using GORM
 func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	var storedUser User
