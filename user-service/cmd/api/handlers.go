@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -243,7 +244,6 @@ func (app *Config) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdatePasswordHandler updates a user's password if they exist
-// UpdatePasswordHandler updates a user's password if they exist
 func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
 		Username    string `json:"username"`
@@ -469,4 +469,185 @@ func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request)
 		"message": "User deactivated successfully",
 		"user_id": id,
 	})
+}
+
+// UpdateEmailHandler updates the user's email address by ID
+func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract user ID by splitting the path
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 4 {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// The user ID is expected to be at index 2
+	id := segments[2]
+	fmt.Println("Extracted User ID:", id)
+
+	// Check if the ID is valid
+	if id == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the user is authenticated with JWT
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract token from "Bearer <token>"
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == authHeader {
+		http.Error(w, "Invalid token format", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse and validate JWT
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse the new email address from the request body (assuming JSON format)
+	var requestData struct {
+		NewEmail string `json:"new_email"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&requestData); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the new email is not empty
+	if requestData.NewEmail == "" {
+		http.Error(w, "New email is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the new email is valid (basic format validation)
+	if !isValidEmail(requestData.NewEmail) {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
+		return
+	}
+
+	// Find the user by ID
+	var user User
+	result := app.DB.Where("id = ?", id).First(&user)
+
+	// If the user is not found
+	if result.RowsAffected == 0 {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Update the user's email address
+	user.MailAddress = requestData.NewEmail
+	if err := app.DB.Save(&user).Error; err != nil {
+		http.Error(w, "Failed to update email", http.StatusInternalServerError)
+		return
+	}
+
+	// Log the email update action (optional)
+	fmt.Printf("User %s (ID: %s) updated their email\n", user.Username, id)
+
+	// Respond with success message
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Email updated successfully")
+}
+
+// Helper function to validate email format (simple validation)
+func isValidEmail(email string) bool {
+	// You can use a more robust regex or library for email validation
+	// Here, a basic validation for a common email format is used
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
+}
+
+// UpdateRoleHandler updates the role of a user
+func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract user ID from the URL path
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 4 {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// The user ID is expected to be at index 2
+	id := segments[2]
+	fmt.Println("Extracted User ID:", id)
+
+	// Check if the ID is valid
+	if id == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the user is authenticated with JWT (same as in your other handlers)
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract the token and parse it
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == authHeader {
+		http.Error(w, "Invalid token format", http.StatusUnauthorized)
+		return
+	}
+
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract the role from the request body (new role)
+	var requestData struct {
+		Role string `json:"role"`
+	}
+
+	// Decode the JSON body into requestData
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the role is provided
+	if requestData.Role == "" {
+		http.Error(w, "Role is required", http.StatusBadRequest)
+		return
+	}
+
+	// Find the user to update by ID
+	var user User
+	result := app.DB.Where("id = ?", id).First(&user)
+	if result.RowsAffected == 0 {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Update the role
+	user.Role = requestData.Role
+	result = app.DB.Save(&user)
+	if result.Error != nil {
+		http.Error(w, "Failed to update role", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the updated user info (or just a success message)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "User role updated to: %s", user.Role)
 }
