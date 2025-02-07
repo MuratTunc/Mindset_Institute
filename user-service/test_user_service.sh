@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Load environment variables from .env file
+ENV_FILE="../build-tools/.env"
+if [ -f "$ENV_FILE" ]; then
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+  echo "⚠️ .env file not found at $ENV_FILE"
+  exit 1
+fi
+
 # Install jq (JSON parsing utility) if not already installed
 if ! command -v jq &> /dev/null
 then
@@ -9,25 +18,52 @@ then
 fi
 
 # Define user details
-USERNAME="testuser1"
-MAILADDRESS="testuser1@example.com"
+USERNAME="testuser"
+MAILADDRESS="testuser@example.com"
 PASSWORD="TestPassword123"
-NEW_PASSWORD="NewTestPassword123"
 ROLE="Admin"
 
+# Define new parameters
+NEW_PASSWORD="NewTestPassword123"
+NEW_EMAIL="newmail@example.com"
+NEW_ROLE="MANAGER"
+
+
 # Define API URLs
-BASE_URL="http://localhost:8080"
+# Read port from .env file
+BASE_URL="http://localhost:$USER_SERVICE_PORT"
+HEALTH_CHECK_URL="$BASE_URL/health"
 REGISTER_URL="$BASE_URL/register"
 LOGIN_URL="$BASE_URL/login"
 USER_URL="$BASE_URL/user"
-UPDATE_USER_URL="$BASE_URL/user"
+
+
+# (Require JWT authentication)
 UPDATE_PASSWORD_URL="$BASE_URL/update-password"
-DELETE_USER_URL="$BASE_URL/user"
+UPDATE_USER_URL="$BASE_URL/update-user"
 DEACTIVATE_USER_URL="$BASE_URL/deactivate-user"
 ACTIVATE_USER_URL="$BASE_URL/activate-user"
+UPDATE_EMAIL_URL="$BASE_URL/update-email"
+UPDATE_ROLE_URL="$BASE_URL/update-role"
+DELETE_USER_URL="$BASE_URL/delete-user"
 
-NEW_EMAIL="newmail@example.com"
-NEW_ROLE="MANAGER"
+
+health_check() {
+  echo "<------HEALTH CHECK------>"
+  echo "Checking service health at: $BASE_URL/health"
+
+  RESPONSE=$(curl -s -X GET "$BASE_URL/health")
+
+  if [[ -z "$RESPONSE" ]]; then
+    echo "❌ Error: No response from service!"
+    exit 1
+  fi
+
+  echo "✅ Health Check Response: $RESPONSE"
+  echo "--------------------------"
+}
+
+
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
@@ -88,11 +124,12 @@ login_user() {
 
 # Function to get user details
 get_user_details() {
-  echo "Test: FETCH USER DETAILS"
+  echo "<------USER DETAILS------>"
   echo "--------------------------"
-  echo "URL:$USER_URL?username=updateduser"
+  echo "$USERNAME"
+  echo "URL:$USER_URL?username=$USERNAME"
 
-  RESPONSE=$(curl -s -X GET "$USER_URL?username=updateduser" -H "Authorization: Bearer $JWT_TOKEN")
+  RESPONSE=$(curl -s -X GET "$USER_URL?username=$USERNAME" -H "Authorization: Bearer $JWT_TOKEN")
 
   echo "$RESPONSE" | jq .
 
@@ -193,7 +230,7 @@ update_password() {
   echo "URL:$UPDATE_PASSWORD_URL"
 
   UPDATE_PASSWORD_RESPONSE=$(curl -s -w "%{http_code}" -X POST "$UPDATE_PASSWORD_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "username": "updateduser",
+    "username": "'$USERNAME'",
     "new_password": "'$NEW_PASSWORD'"
   }')
 
@@ -218,10 +255,9 @@ update_email() {
   echo "Test: UPDATE EMAIL ADDRESS"
   echo "--------------------------"
   echo "USER ID=$USER_ID"
-  UPDATE_EMAIL_URL="$BASE_URL/user/$USER_ID/update-email"
-  echo "URL:$UPDATE_EMAIL_URL"
+  echo "URL:$UPDATE_EMAIL_URL/$USER_ID"
 
-  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
     "new_email": "'$NEW_EMAIL'"
   }')
 
@@ -246,10 +282,10 @@ update_role() {
   echo "Test: UPDATE USER ROLE"
   echo "--------------------------"
   echo "USER ID=$USER_ID"
-  UPDATE_ROLE_URL="$BASE_URL/user/$USER_ID/update-role"
-  echo "URL:$UPDATE_ROLE_URL"
+  
+  echo "URL:$UPDATE_ROLE_URL/$USER_ID"
 
-  UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_ROLE_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+  UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_ROLE_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
     "role": "'$NEW_ROLE'"
   }')
 
@@ -298,40 +334,55 @@ delete_user() {
 }
 
 
-### **🚀 EXECUTION FLOW 🚀**
+show_databas_table(){
+  
+  # Get the container ID using the container name
+  CONTAINER_ID=$(docker ps -qf "name=$USER_POSTGRES_DB_CONTAINER_NAME")
 
-# register_user
+  # Check if the container exists
+  if [ -z "$CONTAINER_ID" ]; then
+      echo "Error: No running container found with name '$CONTAINER_NAME'."
+      exit 1
+  fi
+
+  # Run the query to list all rows in the 'users' table
+  docker exec -i "$CONTAINER_ID" psql -U "$USER_POSTGRES_DB_USER" -d "$USER_POSTGRES_DB_NAME" -c "SELECT * FROM users;"
+
+}
+
+### **🚀 TEST EXECUTION FLOW 🚀**
+
+
+health_check
+
+
+# First Register
 register_user
 
-# Log in
+# Start to test all end points
 login_user
-
-# Fetch user details
 get_user_details
 
-# Deactivate user
 deactivate_user
-
-# Activate user
-activate_user
-
-# Update user details
-update_user
-
-# Update password
-update_password
-
-# Update update_emai
-update_email
-
-# Update ROLE
-update_role
-
-# Get user details again to confirm updates
 get_user_details
 
-# Delete user
+activate_user
+get_user_details
+
+update_email
+get_user_details
+
+update_password
+get_user_details
+
+update_role
+get_user_details
+
+update_user
+get_user_details
+
 delete_user
+show_databas_table
 
 # Final message
 echo "ALL TESTS ARE DONE!!!"

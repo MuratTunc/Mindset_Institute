@@ -48,7 +48,7 @@ services:
 
   user-db:
     image: postgres:15
-    container_name: user-db
+    container_name: ${USER_POSTGRES_DB_CONTAINER_NAME}
     restart: always
     environment:
       POSTGRES_USER: ${USER_POSTGRES_DB_USER}
@@ -66,7 +66,7 @@ services:
 
   customer-db:
     image: postgres:15
-    container_name: customer-db
+    container_name: ${CUSTOMER_POSTGRES_DB_CONTAINER_NAME}
     restart: always
     environment:
       POSTGRES_USER: ${CUSTOMER_POSTGRES_DB_USER}
@@ -84,7 +84,7 @@ services:
 
   salestracking-db:
     image: postgres:15
-    container_name: salestracking-db
+    container_name: ${SALESTRACKING_POSTGRES_DB_CONTAINER_NAME}
     restart: always
     environment:
       POSTGRES_USER: ${SALESTRACKING_POSTGRES_DB_USER}

@@ -40,18 +40,14 @@ func (app *Config) routes() http.Handler {
 	mux.Group(func(mux chi.Router) {
 		mux.Use(AuthMiddleware) // Apply JWT authentication middleware
 
-		mux.Post("/update-password", app.UpdatePasswordHandler) // Password update (requires authentication)
-		mux.Get("/user", app.GetUserHandler)                    // Retrieve a user by ID
-		mux.Put("/user/{id}", app.UpdateUserHandler)            // Update user by ID
-		mux.Delete("/user/{id}", app.DeleteUserHandler)         // Delete user by ID
-
-		// Calls LogoutUserHandler to set login_status = false in DB.
-		// Allows only authenticated users to log out.
-		mux.Post("/logout", app.LogoutUserHandler)                  // Logout route
+		mux.Get("/user", app.GetUserHandler)                        // Retrieve a user by ID
+		mux.Post("/update-password", app.UpdatePasswordHandler)     // Password update (requires authentication)
+		mux.Put("/update-user/{id}", app.UpdateUserHandler)         // Update user by ID
 		mux.Put("/deactivate-user/{id}", app.DeactivateUserHandler) // Deactivate user by ID
 		mux.Put("/activate-user/{id}", app.ActivateUserHandler)     // Activate user by ID
-		mux.Put("/user/{id}/update-email", app.UpdateEmailHandler)  // Update user's email address
-		mux.Put("/user/{id}/update-role", app.UpdateRoleHandler)    // Update user's role
+		mux.Put("/update-email/{id}", app.UpdateEmailHandler)       // Update user's email address
+		mux.Put("/update-role/{id}", app.UpdateRoleHandler)         // Update user's role
+		mux.Delete("/delete-user/{id}", app.DeleteUserHandler)      // Delete user by ID
 
 	})
 

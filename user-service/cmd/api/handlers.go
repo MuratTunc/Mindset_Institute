@@ -212,36 +212,6 @@ func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// LogoutUserHandler sets login_status to false
-func (app *Config) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the username from JWT token
-	username := r.Header.Get("X-Username") // This is set in the AuthMiddleware
-
-	if username == "" {
-		http.Error(w, "Unauthorized: Missing username in request", http.StatusUnauthorized)
-		return
-	}
-
-	// Find user in DB
-	var user User
-	result := app.DB.Where("username = ?", username).First(&user)
-	if result.Error != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
-		return
-	}
-
-	// Set login_status to false
-	user.LoginStatus = false
-	app.DB.Save(&user)
-
-	// Send response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message":     "Logout successful",
-		"loginStatus": "false",
-	})
-}
-
 // UpdatePasswordHandler updates a user's password if they exist
 func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
@@ -360,72 +330,6 @@ func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, UserUpdatedSuccess)
 }
 
-// DeleteUserHandler deletes a user by ID
-func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Extract user ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// The user ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted User ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// Ensure the user is authenticated with JWT
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Missing token", http.StatusUnauthorized)
-		return
-	}
-
-	// Extract token from "Bearer <token>"
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == authHeader {
-		http.Error(w, "Invalid token format", http.StatusUnauthorized)
-		return
-	}
-
-	// Parse and validate JWT
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
-	})
-
-	if err != nil || !token.Valid {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return
-	}
-
-	// Optional: Add the username from the token to the request context (for logging or further checks)
-	username := claims["username"].(string)
-
-	// Find the user to delete by ID
-	var user User
-	result := app.DB.Where("id = ?", id).Delete(&user)
-
-	// If no rows were affected, the user was not found
-	if result.RowsAffected == 0 {
-		http.Error(w, ErrUserNotFound, http.StatusNotFound)
-		return
-	}
-
-	// Log the deletion action (optional)
-	fmt.Printf("User %s (ID: %s) deleted by %s\n", user.Username, id, username)
-
-	// Respond with success message
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "User deleted successfully")
-}
-
 func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Extract user ID by splitting the path
@@ -518,13 +422,13 @@ func (app *Config) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
 func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract user ID by splitting the path
 	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 4 {
+	if len(segments) < 2 {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
 	}
 
-	// The user ID is expected to be at index 2
-	id := segments[2]
+	// The user ID is expected to be the second segment of the URL path
+	id := segments[len(segments)-1]
 	fmt.Println("Extracted User ID:", id)
 
 	// Check if the ID is valid
@@ -605,25 +509,18 @@ func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Email updated successfully")
 }
 
-// Helper function to validate email format (simple validation)
-func isValidEmail(email string) bool {
-	// You can use a more robust regex or library for email validation
-	// Here, a basic validation for a common email format is used
-	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return re.MatchString(email)
-}
-
 // UpdateRoleHandler updates the role of a user
 func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID from the URL path
+
+	// Extract user ID by splitting the path
 	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 4 {
+	if len(segments) < 2 {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
 	}
 
-	// The user ID is expected to be at index 2
-	id := segments[2]
+	// The user ID is expected to be the second segment of the URL path
+	id := segments[len(segments)-1]
 	fmt.Println("Extracted User ID:", id)
 
 	// Check if the ID is valid
@@ -693,4 +590,78 @@ func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
 	// Respond with the updated user info (or just a success message)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "User role updated to: %s", user.Role)
+}
+
+// Helper function to validate email format (simple validation)
+func isValidEmail(email string) bool {
+	// You can use a more robust regex or library for email validation
+	// Here, a basic validation for a common email format is used
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
+}
+
+// DeleteUserHandler deletes a user by ID
+func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Extract user ID by splitting the path
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 2 {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// The user ID is expected to be the second segment of the URL path
+	id := segments[len(segments)-1]
+	fmt.Println("Extracted User ID:", id)
+
+	// Check if the ID is valid
+	if id == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the user is authenticated with JWT
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract token from "Bearer <token>"
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == authHeader {
+		http.Error(w, "Invalid token format", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse and validate JWT
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	// Optional: Add the username from the token to the request context (for logging or further checks)
+	username := claims["username"].(string)
+
+	// Find the user to delete by ID
+	var user User
+	result := app.DB.Where("id = ?", id).Delete(&user)
+
+	// If no rows were affected, the user was not found
+	if result.RowsAffected == 0 {
+		http.Error(w, ErrUserNotFound, http.StatusNotFound)
+		return
+	}
+
+	// Log the deletion action (optional)
+	fmt.Printf("User %s (ID: %s) deleted by %s\n", user.Username, id, username)
+
+	// Respond with success message
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "User deleted successfully")
 }
