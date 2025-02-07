@@ -24,13 +24,14 @@ UPDATE_USER_URL="$BASE_URL/user"
 UPDATE_PASSWORD_URL="$BASE_URL/update-password"
 DELETE_USER_URL="$BASE_URL/user"
 DEACTIVATE_USER_URL="$BASE_URL/deactivate-user"
+ACTIVATE_USER_URL="$BASE_URL/activate-user"
 
 NEW_EMAIL="newmail@example.com"
 NEW_ROLE="MANAGER"
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
-  echo "Test-1: REGISTER NEW USER"
+  echo "Test: REGISTER NEW USER"
   echo "--------------------------"
   echo "URL:$REGISTER_URL"
 
@@ -61,7 +62,7 @@ register_user() {
 
 # Function to log in and get JWT token
 login_user() {
-  echo "Test-2: LOGIN USER"
+  echo "Test: LOGIN USER"
   echo "--------------------------"
   echo "URL:$LOGIN_URL"
 
@@ -87,7 +88,7 @@ login_user() {
 
 # Function to get user details
 get_user_details() {
-  echo "Test-3: FETCH USER DETAILS"
+  echo "Test: FETCH USER DETAILS"
   echo "--------------------------"
   echo "URL:$USER_URL?username=updateduser"
 
@@ -108,7 +109,7 @@ get_user_details() {
 
 # Function to deactivate user
 deactivate_user() {
-  echo "Test-4: DEACTIVATE USER"
+  echo "Test: DEACTIVATE USER"
   echo "--------------------------"
   echo "USER ID: $USER_ID"
   echo "URL:$DEACTIVATE_USER_URL/$USER_ID"
@@ -131,10 +132,35 @@ deactivate_user() {
   echo "--------------------------"
 }
 
+# Function to activate user
+activate_user() {
+  echo "Test: ACTIVATE USER"
+  echo "--------------------------"
+  echo "USER ID: $USER_ID"
+  echo "URL:$ACTIVATE_USER_URL/$USER_ID"
+
+  # Use the ACTIVATE_USER_URL variable and append the user ID directly
+  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$ACTIVATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+
+  HTTP_BODY=$(echo "$ACTIVATE_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$ACTIVATE_RESPONSE" | tail -n1)
+
+  echo "Activate response: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  if [ "$HTTP_STATUS" -ne 200 ]; then
+    echo "Error: User activation failed."
+    exit 1
+  fi
+
+  echo "User deactivated successfully."
+  echo "--------------------------"
+}
+
 
 # Function to update user details
 update_user() {
-  echo "Test-5: UPDATE USER"
+  echo "Test: UPDATE USER"
   echo "--------------------------"
   echo "URL:$UPDATE_USER_URL/$USER_ID"
 
@@ -162,7 +188,7 @@ update_user() {
 
 # Function to update user password
 update_password() {
-  echo "Test-6: UPDATE NEW PASSWORD"
+  echo "Test: UPDATE NEW PASSWORD"
   echo "--------------------------"
   echo "URL:$UPDATE_PASSWORD_URL"
 
@@ -189,8 +215,10 @@ update_password() {
 
 # Function to update user email address
 update_email() {
-  echo "Test-7: UPDATE EMAIL ADDRESS"
+  echo "Test: UPDATE EMAIL ADDRESS"
   echo "--------------------------"
+  echo "USER ID=$USER_ID"
+  UPDATE_EMAIL_URL="$BASE_URL/user/$USER_ID/update-email"
   echo "URL:$UPDATE_EMAIL_URL"
 
   UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
@@ -215,8 +243,10 @@ update_email() {
 
 # Function to update user role
 update_role() {
-  echo "Test-8: UPDATE USER ROLE"
+  echo "Test: UPDATE USER ROLE"
   echo "--------------------------"
+  echo "USER ID=$USER_ID"
+  UPDATE_ROLE_URL="$BASE_URL/user/$USER_ID/update-role"
   echo "URL:$UPDATE_ROLE_URL"
 
   UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_ROLE_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
@@ -242,7 +272,7 @@ update_role() {
 
 # Function to delete user
 delete_user() {
-  echo "Test-9: DELETE USER"
+  echo "Test: DELETE USER"
   echo "--------------------------"
   echo "USER ID=$USER_ID"
   echo "URL:$DELETE_USER_URL/$USER_ID"
@@ -282,6 +312,9 @@ get_user_details
 # Deactivate user
 deactivate_user
 
+# Activate user
+activate_user
+
 # Update user details
 update_user
 
@@ -293,7 +326,6 @@ update_email
 
 # Update ROLE
 update_role
-
 
 # Get user details again to confirm updates
 get_user_details

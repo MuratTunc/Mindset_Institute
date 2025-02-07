@@ -471,6 +471,50 @@ func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request)
 	})
 }
 
+func (app *Config) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Extract user ID by splitting the path
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 2 {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// The user ID is expected to be the second segment of the URL path
+	id := segments[len(segments)-1]
+	fmt.Println("Extracted User ID:", id)
+
+	// Check if the ID is valid
+	if id == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	//  Finds the user in the database.
+	var user User
+	result := app.DB.First(&user, id)
+	if result.Error != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Set Activated to false
+	user.Activated = true
+
+	// Update the user in the database
+	if err := app.DB.Save(&user).Error; err != nil {
+		http.Error(w, "Failed to activate user", http.StatusInternalServerError)
+		return
+	}
+
+	// Send success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User activated successfully",
+		"user_id": id,
+	})
+}
+
 // UpdateEmailHandler updates the user's email address by ID
 func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract user ID by splitting the path

@@ -49,7 +49,8 @@ func (app *Config) routes() http.Handler {
 		// Allows only authenticated users to log out.
 		mux.Post("/logout", app.LogoutUserHandler)                  // Logout route
 		mux.Put("/deactivate-user/{id}", app.DeactivateUserHandler) // Deactivate user by ID
-		mux.Put("/user/{id}/email", app.UpdateEmailHandler)         // Update user's email address
+		mux.Put("/activate-user/{id}", app.ActivateUserHandler)     // Activate user by ID
+		mux.Put("/user/{id}/update-email", app.UpdateEmailHandler)  // Update user's email address
 		mux.Put("/user/{id}/update-role", app.UpdateRoleHandler)    // Update user's role
 
 	})

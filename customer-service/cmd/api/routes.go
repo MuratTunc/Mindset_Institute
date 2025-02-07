@@ -29,6 +29,9 @@ func (app *Config) routes() http.Handler {
 	mux.Use(middleware.Recoverer)          // Recover from panics gracefully
 	mux.Use(middleware.Logger)             // Log all requests
 
+	// Custom health check endpoint
+	mux.Get("/health", app.HealthCheckHandler)
+
 	// Routes for authentication
 	mux.Post("/register", app.CreateUserHandler) // Handle registration
 	mux.Post("/login", app.LoginUserHandler)     // Handle login

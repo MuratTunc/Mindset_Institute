@@ -9,7 +9,7 @@ build: clean_volumes stop_down_all_containers check_postgres build_user_service 
 	echo "✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅"
 	echo "📜 Fetching logs for all services..."
 	docker-compose logs --tail=20
-	echo "🚀 Runnig Containers:"
+	echo "🚀 Running Containers:"
 	docker ps
 
 ## clean_volumes: Removes all volumes (database data) to start fresh
