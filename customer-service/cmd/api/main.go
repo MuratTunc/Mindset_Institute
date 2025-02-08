@@ -17,12 +17,12 @@ type Config struct {
 // connectToDB retries connecting to PostgreSQL until it succeeds or fails after retries
 func connectToDB() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		DBHost, DBCustomer, DBPassword, DBName, DBPort)
+		DBHost, DBUser, DBPassword, DBName, DBPort)
 
 	var db *gorm.DB
 	var err error
 
-	// Retry logic: Try connecting 5 times with a 5-second delay
+	// Retry logic: Try connecting 10 times with a 10-second delay
 	for i := 1; i <= 10; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err == nil {

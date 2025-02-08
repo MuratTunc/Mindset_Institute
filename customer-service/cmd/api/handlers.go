@@ -27,6 +27,8 @@ const (
 
 // HealthCheckHandler checks the database connection using GORM
 func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("HealthCheckHandler is Called")
 	sqlDB, err := app.DB.DB() // Get *sql.DB from *gorm.DB
 	if err != nil {
 		http.Error(w, "Failed to get database instance", http.StatusInternalServerError)

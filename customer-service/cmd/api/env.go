@@ -6,29 +6,42 @@ import (
 	"os"
 )
 
+// Load environment variables
 var (
 	DBHost      = os.Getenv("CUSTOMER_POSTGRES_DB_HOST")
-	DBCustomer  = os.Getenv("CUSTOMER_POSTGRES_DB_CUSTOMER")
+	DBUser      = os.Getenv("CUSTOMER_POSTGRES_DB_USER")
 	DBPassword  = os.Getenv("CUSTOMER_POSTGRES_DB_PASSWORD")
 	DBName      = os.Getenv("CUSTOMER_POSTGRES_DB_NAME")
-	DBPort      = os.Getenv("CUSTOMER_POSTGRES_DB_PORT")
 	ServicePort = os.Getenv("CUSTOMER_SERVICE_PORT")
 	ServiceName = os.Getenv("CUSTOMER_SERVICE_NAME")
 )
 
+// Set DBPort explicitly to 5432 inside the container
+const DBPort = "5432"
+
 // PrintEnvVariables prints all environment variables for debugging
 func PrintEnvVariables() {
-	fmt.Println("🔧 Loaded Environment Variables-CUSTOMER_SERVICE")
-	fmt.Printf("DBCustomer: %s\n", DBCustomer)
+	fmt.Println("🔧 Loaded Environment Variables - CUSTOMER_SERVICE")
+	fmt.Printf("DBHost: %s\n", DBHost)
+	fmt.Printf("DBUser: %s\n", DBUser)
 	fmt.Printf("DBPassword: %s\n", DBPassword)
 	fmt.Printf("DBName: %s\n", DBName)
 	fmt.Printf("DBPort: %s\n", DBPort)
-	fmt.Printf("DBHost: %s\n", DBHost)
 	fmt.Printf("ServicePort: %s\n", ServicePort)
 	fmt.Printf("ServiceName: %s\n", ServiceName)
 
-	// Ensure SERVICE environment variables are set
+	// Ensure all required environment variables are set
+	missingEnvVars := false
+	if DBHost == "" || DBUser == "" || DBPassword == "" || DBName == "" {
+		fmt.Println("❌ Error: Missing required database environment variables")
+		missingEnvVars = true
+	}
 	if ServicePort == "" || ServiceName == "" {
-		log.Fatal("❌ Error: Missing environment variables for CUSTOMER_SERVICE")
+		fmt.Println("❌ Error: Missing required service environment variables")
+		missingEnvVars = true
+	}
+
+	if missingEnvVars {
+		log.Fatal("❌ Exiting due to missing environment variables.")
 	}
 }
