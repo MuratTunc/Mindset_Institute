@@ -47,6 +47,10 @@ ACTIVATE_CUSTOMER_URL="$BASE_URL/activate-customer"
 UPDATE_EMAIL_URL="$BASE_URL/update-email"
 UPDATE_NOTE_URL="$BASE_URL/update-note"
 INSERT_NOTE_URL="$BASE_URL/insert-note"
+GET_ALL_CUSTOMERS_URL="$BASE_URL/get_all_customer"
+ORDER_CUSTOMERS_URL="$BASE_URL/order-customers"
+GET_ACTIVATED_CUSTOMERS_URL="$BASE_URL/activated-customers"
+GET_LOGGED_IN_CUSTOMERS_URL="$BASE_URL/logged-in-customers"
 DELETE_CUSTOMER_URL="$BASE_URL/delete-customer"
 
 
@@ -352,6 +356,119 @@ insert_note() {
 
 
 
+# Function to get all customers
+get_all_customers() {
+  echo "--------------------------"
+  echo "Test: GET ALL CUSTOMERS"
+  echo "--------------------------"
+  echo "URL: $GET_ALL_CUSTOMERS_URL"
+
+  # Send GET request to the endpoint
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$GET_ALL_CUSTOMERS_URL" -H "Content-Type: application/json")
+
+  # Display the response
+  echo -e "$RESPONSE"
+
+  # Check if the request was successful (HTTP 200)
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Successfully retrieved all customers."
+  else
+    echo "❌ Failed to fetch customers."
+  fi
+}
+
+
+# Function to test ordering customers
+order_customers() {
+  echo "--------------------------"
+  echo "Test: ORDER CUSTOMERS"
+  echo "--------------------------"
+  
+  # Test ordering by created_at (default)
+  echo "URL: $ORDER_CUSTOMERS_URL"
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$ORDER_CUSTOMERS_URL")
+  echo -e "$RESPONSE"
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Customers ordered by created_at."
+  else
+    echo "❌ Failed to order customers by created_at."
+  fi
+  
+  # Test ordering by customername
+  echo "URL: $ORDER_CUSTOMERS_URL?order_by=customername"
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$ORDER_CUSTOMERS_URL?order_by=customername")
+  echo -e "$RESPONSE"
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Customers ordered by customername."
+  else
+    echo "❌ Failed to order customers by customername."
+  fi
+  
+  # Test ordering by updated_at
+  echo "URL: $ORDER_CUSTOMERS_URL?order_by=updated_at"
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$ORDER_CUSTOMERS_URL?order_by=updated_at")
+  echo -e "$RESPONSE"
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Customers ordered by updated_at."
+  else
+    echo "❌ Failed to order customers by updated_at."
+  fi
+  
+  # Test with an invalid 'order_by' parameter (should default)
+  echo "URL: $ORDER_CUSTOMERS_URL?order_by=invalid_field"
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$ORDER_CUSTOMERS_URL?order_by=invalid_field")
+  echo -e "$RESPONSE"
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Customers ordered with invalid 'order_by' field (default applied)."
+  else
+    echo "❌ Failed to apply default ordering."
+  fi
+}
+
+# Function to get activated customer names
+get_activated_customers() {
+  echo "--------------------------"
+  echo "Test: GET ACTIVATED CUSTOMERS"
+  echo "--------------------------"
+  echo "URL: $GET_ACTIVATED_CUSTOMERS_URL"
+
+  # Send GET request to the endpoint
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$GET_ACTIVATED_CUSTOMERS_URL")
+
+  # Display the response
+  echo -e "$RESPONSE"
+
+  # Check if the request was successful (HTTP 200)
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Successfully retrieved activated customer names."
+  else
+    echo "❌ Failed to fetch activated customer names."
+  fi
+}
+
+
+# Function to get all logged-in customers
+get_logged_in_customers() {
+  echo "--------------------------"
+  echo "Test: GET LOGGED-IN CUSTOMERS"
+  echo "--------------------------"
+  echo "URL: $GET_LOGGED_IN_CUSTOMERS_URL"
+
+  # Send GET request to the endpoint
+  RESPONSE=$(curl -s -w "\nHTTP Status Code: %{http_code}\n" -X GET "$GET_LOGGED_IN_CUSTOMERS_URL" -H "Content-Type: application/json")
+
+  # Display the response
+  echo -e "$RESPONSE"
+
+  # Check if the request was successful (HTTP 200)
+  if [[ "$RESPONSE" == *"HTTP Status Code: 200"* ]]; then
+    echo "✅ Successfully retrieved logged-in customers."
+  else
+    echo "❌ Failed to fetch logged-in customers."
+  fi
+}
+
+
 
 # Function to delete customer
 delete_customer() {
@@ -379,6 +496,9 @@ delete_customer() {
   echo "User deleted successfully."
   echo "--------------------------"
 }
+
+
+
 
 
 
@@ -431,6 +551,12 @@ get_customer_details
 
 update_customer
 get_customer_details
+
+order_customers
+get_activated_customers
+get_logged_in_customers
+
+
 
 delete_customer
 show_database_table

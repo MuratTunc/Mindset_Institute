@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -25,6 +26,54 @@ const (
 	LoginSuccess           = "Login successful"
 )
 
+// GetLoggedInCustomersHandler returns all customers with LoginStatus set to true
+func (app *Config) GetLoggedInCustomersHandler(w http.ResponseWriter, r *http.Request) {
+	var customers []Customer
+
+	// Fetch customers with LoginStatus = true
+	result := app.DB.Where("login_status = ?", true).Find(&customers)
+	if result.Error != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if any customers were found
+	if len(customers) == 0 {
+		http.Error(w, "No customers with active login status", http.StatusNotFound)
+		return
+	}
+
+	// Return the list of customers
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(customers)
+}
+
+// GetActivatedCustomerNamesHandler returns the names of customers who are activated
+func (app *Config) GetActivatedCustomerNamesHandler(w http.ResponseWriter, r *http.Request) {
+	// Declare a slice to hold customer names
+	var customerNames []string
+
+	// Fetch only customers where 'Activated' is true
+	// Use Model(&Customer) to specify the table
+	result := app.DB.Model(&Customer{}).Where("activated = ?", true).Pluck("customername", &customerNames)
+	if result.Error != nil {
+		// Log the error to see what's going wrong
+		log.Printf("Error fetching activated customers: %v", result.Error)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if we have no activated customers
+	if len(customerNames) == 0 {
+		http.Error(w, "No activated customers found", http.StatusNotFound)
+		return
+	}
+
+	// Send response with customer names
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(customerNames)
+}
+
 // GetAllCustomerHandler retrieves all customers from the database
 func (app *Config) GetAllCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	var customers []Customer
@@ -37,6 +86,36 @@ func (app *Config) GetAllCustomerHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Send JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(customers)
+}
+
+// OrderCustomersHandler retrieves all customers ordered by a specified field
+func (app *Config) OrderCustomersHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the "order_by" query parameter
+	orderBy := r.URL.Query().Get("order_by")
+
+	// Allowed fields for ordering
+	allowedFields := map[string]bool{
+		"customername": true,
+		"created_at":   true,
+		"updated_at":   true,
+	}
+
+	// Default order by "created_at"
+	if !allowedFields[orderBy] {
+		orderBy = "created_at"
+	}
+
+	// Retrieve ordered customers from the database
+	var customers []Customer
+	result := app.DB.Order(orderBy + " DESC").Find(&customers)
+	if result.Error != nil {
+		http.Error(w, "Failed to fetch customers", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(customers)
 }

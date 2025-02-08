@@ -29,22 +29,25 @@ func (app *Config) routes() http.Handler {
 	mux.Use(middleware.Recoverer)          // Recover from panics gracefully
 	mux.Use(middleware.Logger)             // Log all requests
 
-	// Custom health check endpoint
-	mux.Get("/health", app.HealthCheckHandler)
-
 	// Public Routes (No authentication required)
-	mux.Post("/register", app.CreateCustomerHandler) // Handle customer registration
-	mux.Post("/login", app.LoginCustomerHandler)     // Handle customer login
-	mux.Get("/get_all_customer", app.GetAllCustomerHandler)
+	mux.Post("/register", app.CreateCustomerHandler)        // Handle customer registration
+	mux.Post("/login", app.LoginCustomerHandler)            // Handle customer login
+	mux.Post("/update-password", app.UpdatePasswordHandler) // Password update (requires authentication)
 
-	mux.Get("/customer", app.GetCustomerHandler)                        // Retrieve a customer by ID
-	mux.Post("/update-password", app.UpdatePasswordHandler)             // Password update (requires authentication)
+	mux.Get("/health", app.HealthCheckHandler) // Custom health check endpoint
+	mux.Get("/get_all_customer", app.GetAllCustomerHandler)
+	mux.Get("/order-customers", app.OrderCustomersHandler)
+	mux.Get("/activated-customers", app.GetActivatedCustomerNamesHandler)
+	mux.Get("/logged-in-customers", app.GetLoggedInCustomersHandler)
+	mux.Get("/customer", app.GetCustomerHandler) // Retrieve a customer by ID
+
 	mux.Put("/update-customer/{id}", app.UpdateCustomerHandler)         // Update customer by ID
 	mux.Put("/deactivate-customer/{id}", app.DeactivateCustomerHandler) // Deactivate customer by ID
 	mux.Put("/activate-customer/{id}", app.ActivateCustomerHandler)     // Activate customer by ID
 	mux.Put("/update-email/{id}", app.UpdateEmailHandler)               // Update customer's email address
 	mux.Put("/update-note", app.UpdateNoteHandler)
-	mux.Put("/insert-note", app.InsertNoteHandler)                 // Route to insert new note into an existing one
+	mux.Put("/insert-note", app.InsertNoteHandler) // Route to insert new note into an existing one
+
 	mux.Delete("/delete-customer/{id}", app.DeleteCustomerHandler) // Delete customer by ID
 
 	return mux
