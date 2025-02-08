@@ -22,7 +22,7 @@ func connectToDB() (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 
-	// Retry logic: Try connecting 5 times with a 5-second delay
+	// Retry logic: Try connecting 10 times with a 5-second delay
 	for i := 1; i <= 10; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err == nil {
@@ -38,7 +38,7 @@ func connectToDB() (*gorm.DB, error) {
 	}
 
 	// AutoMigrate to create tables
-	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&Sale{})
 	if err != nil {
 		log.Fatalf("❌ Failed to migrate database: %v", err)
 	}

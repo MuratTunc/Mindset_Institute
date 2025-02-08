@@ -2,14 +2,15 @@ package main
 
 import "time"
 
-// User model for GORM
-type User struct {
-	ID          uint      `gorm:"primaryKey"`
-	Username    string    `gorm:"unique;not null"`
-	MailAddress string    `gorm:"unique;not null"`
-	Password    string    `gorm:"not null"`
-	Activated   bool      `gorm:"default:false"`
-	LoginStatus bool      `gorm:"default:false"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+// Sale model for GORM
+type Sale struct {
+	ID              uint      `gorm:"primaryKey"`
+	Salename        string    `gorm:"type:varchar(255);uniqueIndex;not null"`
+	New             bool      `gorm:"default:false"`
+	InCommunication bool      `gorm:"default:false"`
+	Deal            bool      `gorm:"default:false"`
+	Closed          bool      `gorm:"default:false"`
+	Note            string    `gorm:"type:text"`
+	CreatedAt       time.Time `gorm:"autoCreateTime"`
+	UpdatedAt       time.Time `gorm:"autoUpdateTime"`
 }

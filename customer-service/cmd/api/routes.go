@@ -29,7 +29,6 @@ func (app *Config) routes() http.Handler {
 	mux.Use(middleware.Recoverer)          // Recover from panics gracefully
 	mux.Use(middleware.Logger)             // Log all requests
 
-	// Public Routes (No authentication required)
 	mux.Post("/register", app.CreateCustomerHandler)        // Handle customer registration
 	mux.Post("/login", app.LoginCustomerHandler)            // Handle customer login
 	mux.Post("/update-password", app.UpdatePasswordHandler) // Password update (requires authentication)

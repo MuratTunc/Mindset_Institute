@@ -6,14 +6,17 @@ import (
 	"os"
 )
 
-// Load environment variables
+// Define service name
+const ServiceNamePrefix = "SALESTRACKING"
+
+// Load environment variables dynamically using ServiceName
 var (
-	DBHost      = os.Getenv("SALESTRACKING_POSTGRES_DB_HOST")
-	DBUser      = os.Getenv("SALESTRACKING_POSTGRES_DB_USER")
-	DBPassword  = os.Getenv("SALESTRACKING_POSTGRES_DB_PASSWORD")
-	DBName      = os.Getenv("SALESTRACKING_POSTGRES_DB_NAME")
-	ServicePort = os.Getenv("SALESTRACKING_SERVICE_PORT")
-	ServiceName = os.Getenv("SALESTRACKING_SERVICE_NAME")
+	DBHost      = os.Getenv(ServiceNamePrefix + "_POSTGRES_DB_HOST")
+	DBUser      = os.Getenv(ServiceNamePrefix + "_POSTGRES_DB_USER")
+	DBPassword  = os.Getenv(ServiceNamePrefix + "_POSTGRES_DB_PASSWORD")
+	DBName      = os.Getenv(ServiceNamePrefix + "_POSTGRES_DB_NAME")
+	ServicePort = os.Getenv(ServiceNamePrefix + "_SERVICE_PORT")
+	ServiceName = os.Getenv(ServiceNamePrefix + "_SERVICE_NAME")
 )
 
 // Set DBPort explicitly to 5432 inside the container
@@ -21,7 +24,7 @@ const DBPort = "5432"
 
 // PrintEnvVariables prints all environment variables for debugging
 func PrintEnvVariables() {
-	fmt.Println("🔧 Loaded Environment Variables - SALESTRACKING_SERVICE")
+	fmt.Println("🔧 Loaded Environment Variables -" + ServiceNamePrefix + "_SERVICE")
 	fmt.Printf("DBHost: %s\n", DBHost)
 	fmt.Printf("DBUser: %s\n", DBUser)
 	fmt.Printf("DBPassword: %s\n", DBPassword)

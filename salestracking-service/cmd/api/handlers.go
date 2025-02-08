@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +13,7 @@ import (
 const (
 	ErrInvalidRequestBody = "Invalid request body"
 	ErrHashingPassword    = "Error hashing password"
-	ErrInsertingUser      = "Error inserting user"
+	ErrInsertingUser      = "Error inserting sale"
 	ErrUserNotFound       = "User not found"
 	ErrInvalidCredentials = "Invalid credentials"
 	UserCreatedSuccess    = "User created successfully"
@@ -41,180 +41,278 @@ func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 
-// HashPassword hashes a password using bcrypt
-func (app *Config) HashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
-}
+// InsertSaleHandler creates a new sale record in the database
+func (app *Config) InsertSaleHandler(w http.ResponseWriter, r *http.Request) {
 
-// CheckPassword compares a hashed password with a plain one
-func (app *Config) CheckPassword(hashedPassword, password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	return err == nil
-}
-
-// CreateUserHandler inserts a new user with a hashed password using GORM
-func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
-		return
-	}
-
-	// Hash the password before saving
-	hashedPassword, err := app.HashPassword(user.Password)
-	if err != nil {
-		http.Error(w, ErrHashingPassword, http.StatusInternalServerError)
-		return
-	}
-	user.Password = hashedPassword
-
-	// Insert user into database using GORM
-	result := app.DB.Create(&user)
-	if result.Error != nil {
-		http.Error(w, ErrInsertingUser, http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintln(w, UserCreatedSuccess)
-}
-
-// LoginUserHandler verifies user credentials using GORM
-func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
-	var storedUser User
-
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
-		return
-	}
-
-	// Find user in DB
-	result := app.DB.Where("username = ?", user.Username).First(&storedUser)
-	if result.Error != nil {
-		http.Error(w, ErrUserNotFound, http.StatusUnauthorized)
-		return
-	}
-
-	// Compare passwords
-	if !app.CheckPassword(storedUser.Password, user.Password) {
-		http.Error(w, ErrInvalidCredentials, http.StatusUnauthorized)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, LoginSuccess)
-}
-
-// UpdatePasswordHandler updates a user's password if they exist
-func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	var requestData struct {
-		Username    string `json:"username"`
-		NewPassword string `json:"new_password"`
+	var request struct {
+		Salename string `json:"salename"`
+		Note     string `json:"note"`
 	}
 
 	// Decode request body
-	err := json.NewDecoder(r.Body).Decode(&requestData)
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Find the user
-	var user User
-	result := app.DB.Where("username = ?", requestData.Username).First(&user)
-	if result.Error != nil {
-		http.Error(w, ErrUserNotFound, http.StatusNotFound)
+	// Check if Salename already exists
+	var existingSale Sale
+	if err := app.DB.Where("salename = ?", request.Salename).First(&existingSale).Error; err == nil {
+		http.Error(w, "Sale with this name already exists", http.StatusConflict)
 		return
-	}
-
-	// Hash new password
-	hashedPassword, err := app.HashPassword(requestData.NewPassword)
-	if err != nil {
-		http.Error(w, ErrHashingPassword, http.StatusInternalServerError)
-		return
-	}
-
-	// Update the password
-	user.Password = hashedPassword
-	app.DB.Save(&user)
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Password updated successfully")
-}
-
-// GetUserHandler retrieves a user by ID
-func (app *Config) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
-	id := r.URL.Query().Get("id")
-
-	result := app.DB.First(&user, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			http.Error(w, ErrUserNotFound, http.StatusNotFound)
-			return
-		}
+	} else if err != gorm.ErrRecordNotFound {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
+	// Create a new sale record
+	newSale := Sale{
+		Salename:  request.Salename,
+		New:       true,
+		Note:      request.Note,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	// Save to DB
+	if err := app.DB.Create(&newSale).Error; err != nil {
+		http.Error(w, "Failed to create sale record", http.StatusInternalServerError)
+		return
+	}
+
+	// Success response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Sale record created successfully",
+	})
 }
 
-// UpdateUserHandler updates user details
-func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
-	id := r.URL.Query().Get("id")
+// DeleteSaleHandler deletes a sale record from the database
+func (app *Config) DeleteSaleHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Salename string `json:"salename"`
+	}
 
-	result := app.DB.First(&user, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			http.Error(w, ErrUserNotFound, http.StatusNotFound)
+	// Decode request body
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the sale exists
+	var sale Sale
+	if err := app.DB.Where("salename = ?", request.Salename).First(&sale).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			http.Error(w, "Sale not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Delete the sale record
+	if err := app.DB.Delete(&sale).Error; err != nil {
+		http.Error(w, "Failed to delete sale", http.StatusInternalServerError)
+		return
+	}
+
+	// Success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message":  "Sale deleted successfully",
+		"salename": request.Salename,
+	})
+}
+
+// UpdateInCommunicationHandler updates the InCommunication field in the sale record
+func (app *Config) UpdateInCommunicationHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Salename        string `json:"salename"`
+		InCommunication bool   `json:"in_communication"`
+		Note            string `json:"note"`
+	}
+
+	// Print incoming request data to logs for debugging
+	fmt.Println("Received request to update sale record:")
+	fmt.Printf("Salename: %s\n", request.Salename)
+	fmt.Printf("InCommunication: %t\n", request.InCommunication)
+	fmt.Printf("Note: %s\n", request.Note)
+
+	// Decode request body
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Find sale by salename
+	var sale Sale
+	if err := app.DB.Where("salename = ?", request.Salename).First(&sale).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			http.Error(w, "Sale not found", http.StatusNotFound)
 			return
 		}
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
+	// Update the fields based on request
+	sale.InCommunication = request.InCommunication
+	sale.New = !request.InCommunication // Set New to false if InCommunication is true
+
+	// Append the new note to the existing note (on a new line)
+	if request.Note != "" {
+		sale.Note += "\n" + request.Note // Append the new note on a new line
+	}
+
+	// Update the sale record and log it
+	if err := app.DB.Save(&sale).Error; err != nil {
+		http.Error(w, "Failed to update sale record", http.StatusInternalServerError)
 		return
 	}
 
-	// If password is being updated, hash it
-	if user.Password != "" {
-		hashedPassword, err := app.HashPassword(user.Password)
-		if err != nil {
-			http.Error(w, ErrHashingPassword, http.StatusInternalServerError)
-			return
-		}
-		user.Password = hashedPassword
-	}
+	// Print the updated sale data for debugging
+	fmt.Println("Updated sale record:")
+	fmt.Printf("Salename: %s\n", sale.Salename)
+	fmt.Printf("InCommunication: %t\n", sale.InCommunication)
+	fmt.Printf("Note: %s\n", sale.Note)
 
-	app.DB.Save(&user)
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, UserUpdatedSuccess)
+	// Success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Sale record updated successfully",
+	})
 }
 
-// DeleteUserHandler deletes a user by ID
-func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
-	id := r.URL.Query().Get("id")
+func (app *Config) UpdateDealHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Salename string `json:"salename"`
+		Deal     bool   `json:"deal"`
+		Note     string `json:"note"`
+	}
 
-	result := app.DB.Delete(&user, id)
-	if result.RowsAffected == 0 {
-		http.Error(w, ErrUserNotFound, http.StatusNotFound)
+	// Print incoming request data to logs for debugging
+	fmt.Println("Received request to update sale record:")
+	fmt.Printf("Salename: %s\n", request.Salename)
+	fmt.Printf("Deal: %t\n", request.Deal)
+	fmt.Printf("Note: %s\n", request.Note)
+
+	// Decode request body
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, UserDeletedSuccess)
+	// Find sale by salename
+	var sale Sale
+	if err := app.DB.Where("salename = ?", request.Salename).First(&sale).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			http.Error(w, "Sale not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Update the fields based on request
+	sale.Deal = request.Deal
+	if request.Deal {
+		sale.New = false
+		sale.InCommunication = false
+	}
+
+	// Append the new note to the existing note (on a new line)
+	if request.Note != "" {
+		sale.Note += "\n" + request.Note // Append the new note on a new line
+	}
+
+	// Update the UpdatedAt field to the current time
+	sale.UpdatedAt = time.Now()
+
+	// Update the sale record and log it
+	if err := app.DB.Save(&sale).Error; err != nil {
+		http.Error(w, "Failed to update sale record", http.StatusInternalServerError)
+		return
+	}
+
+	// Print the updated sale data for debugging
+	fmt.Println("Updated sale record:")
+	fmt.Printf("Salename: %s\n", sale.Salename)
+	fmt.Printf("Deal: %t\n", sale.Deal)
+	fmt.Printf("New: %t\n", sale.New)
+	fmt.Printf("InCommunication: %t\n", sale.InCommunication)
+	fmt.Printf("Note: %s\n", sale.Note)
+	fmt.Printf("UpdatedAt: %s\n", sale.UpdatedAt)
+
+	// Success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Sale record updated successfully",
+	})
+}
+
+// UpdateClosedHandler updates the sale record's "Closed" field and modifies other fields as required
+func (app *Config) UpdateClosedHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Salename string `json:"salename"`
+		Note     string `json:"note"`
+	}
+
+	// Print incoming request data to logs for debugging
+	fmt.Println("Received request to update sale record:")
+	fmt.Printf("Salename: %s\n", request.Salename)
+	fmt.Printf("Note: %s\n", request.Note)
+
+	// Decode request body
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Find sale by salename
+	var sale Sale
+	if err := app.DB.Where("salename = ?", request.Salename).First(&sale).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			http.Error(w, "Sale not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Update the fields based on request
+	sale.Closed = true
+	sale.New = false
+	sale.InCommunication = false
+	sale.Deal = false
+
+	// Append the note text, if provided
+	if request.Note != "" {
+		sale.Note += "\n" + request.Note
+	}
+
+	// Update the UpdatedAt field
+	sale.UpdatedAt = time.Now()
+
+	// Update the sale record in the database
+	if err := app.DB.Save(&sale).Error; err != nil {
+		http.Error(w, "Failed to update sale record", http.StatusInternalServerError)
+		return
+	}
+
+	// Print the updated sale data for debugging
+	fmt.Println("Updated sale record:")
+	fmt.Printf("Salename: %s\n", sale.Salename)
+	fmt.Printf("Closed: %t\n", sale.Closed)
+	fmt.Printf("Note: %s\n", sale.Note)
+
+	// Success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Sale record closed successfully",
+	})
 }

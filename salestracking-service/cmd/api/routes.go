@@ -32,15 +32,13 @@ func (app *Config) routes() http.Handler {
 	// Custom health check endpoint
 	mux.Get("/health", app.HealthCheckHandler)
 
-	// Routes for authentication
-	mux.Post("/register", app.CreateUserHandler)            // Handle registration
-	mux.Post("/login", app.LoginUserHandler)                // Handle login
-	mux.Post("/update-password", app.UpdatePasswordHandler) // New password update route
+	mux.Post("/insert-sale", app.InsertSaleHandler)
 
-	// CRUD operations for users
-	mux.Get("/user", app.GetUserHandler)       // Retrieve a user by ID (query parameter)
-	mux.Put("/user", app.UpdateUserHandler)    // Update user by ID (query parameter)
-	mux.Delete("/user", app.DeleteUserHandler) // Delete user by ID (query parameter)
+	mux.Delete("/delete-sale", app.DeleteSaleHandler)
+
+	mux.Put("/update-incommunication", app.UpdateInCommunicationHandler)
+	mux.Put("/update-deal", app.UpdateDealHandler)
+	mux.Put("/update-closed", app.UpdateClosedHandler)
 
 	return mux
 }
