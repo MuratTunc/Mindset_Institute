@@ -25,6 +25,22 @@ const (
 	LoginSuccess           = "Login successful"
 )
 
+// GetAllCustomerHandler retrieves all customers from the database
+func (app *Config) GetAllCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	var customers []Customer
+
+	// Fetch all customers from the database
+	result := app.DB.Find(&customers)
+	if result.Error != nil {
+		http.Error(w, "Failed to retrieve customers", http.StatusInternalServerError)
+		return
+	}
+
+	// Send JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(customers)
+}
+
 // HealthCheckHandler checks the database connection using GORM
 func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -462,6 +478,51 @@ func (app *Config) UpdateNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Note updated successfully",
+	})
+}
+
+// InsertNoteHandler appends new text to the existing "Note" field for a customer
+func (app *Config) InsertNoteHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Customername string `json:"customername"`
+		NewNote      string `json:"new_note"`
+	}
+
+	// Decode request body
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Find customer in DB
+	var customer Customer
+	result := app.DB.Where("customername = ?", request.Customername).First(&customer)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			http.Error(w, "Customer not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Append the new note to the existing note (if any)
+	if customer.Note != "" {
+		customer.Note += "\n" // New line separator for readability
+	}
+	customer.Note += request.NewNote
+
+	// Save the updated customer record with the new note
+	if err := app.DB.Save(&customer).Error; err != nil {
+		http.Error(w, "Failed to update note", http.StatusInternalServerError)
+		return
+	}
+
+	// Send success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Note appended successfully",
 	})
 }
 

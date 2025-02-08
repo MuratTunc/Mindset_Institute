@@ -35,6 +35,7 @@ func (app *Config) routes() http.Handler {
 	// Public Routes (No authentication required)
 	mux.Post("/register", app.CreateCustomerHandler) // Handle customer registration
 	mux.Post("/login", app.LoginCustomerHandler)     // Handle customer login
+	mux.Get("/get_all_customer", app.GetAllCustomerHandler)
 
 	mux.Get("/customer", app.GetCustomerHandler)                        // Retrieve a customer by ID
 	mux.Post("/update-password", app.UpdatePasswordHandler)             // Password update (requires authentication)
@@ -43,6 +44,7 @@ func (app *Config) routes() http.Handler {
 	mux.Put("/activate-customer/{id}", app.ActivateCustomerHandler)     // Activate customer by ID
 	mux.Put("/update-email/{id}", app.UpdateEmailHandler)               // Update customer's email address
 	mux.Put("/update-note", app.UpdateNoteHandler)
+	mux.Put("/insert-note", app.InsertNoteHandler)                 // Route to insert new note into an existing one
 	mux.Delete("/delete-customer/{id}", app.DeleteCustomerHandler) // Delete customer by ID
 
 	return mux

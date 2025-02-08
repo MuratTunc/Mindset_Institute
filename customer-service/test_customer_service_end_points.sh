@@ -26,6 +26,8 @@ PASSWORD="TestPassword123"
 # Define new parameters
 NEW_PASSWORD="NewTestPassword123"
 NEW_EMAIL="newmail@example.com"
+NEW_NOTE="This is a new note to append."
+UPDATED_NOTE="This is the completely new note."
 
 
 # Define API URLs
@@ -43,6 +45,8 @@ UPDATE_CUSTOMER_URL="$BASE_URL/update-customer"
 DEACTIVATE_CUSTOMER_URL="$BASE_URL/deactivate-customer"
 ACTIVATE_CUSTOMER_URL="$BASE_URL/activate-customer"
 UPDATE_EMAIL_URL="$BASE_URL/update-email"
+UPDATE_NOTE_URL="$BASE_URL/update-note"
+INSERT_NOTE_URL="$BASE_URL/insert-note"
 DELETE_CUSTOMER_URL="$BASE_URL/delete-customer"
 
 
@@ -283,6 +287,69 @@ update_email() {
   echo "--------------------------"
 }
 
+# Function to update the note for a customer
+update_note() {
+  echo "Test: UPDATE NOTE"
+  echo "--------------------------"
+  echo "Customer Name: $CUSTOMERNAME"
+  echo "URL: $UPDATE_NOTE_URL"
+
+  # Send PUT request to the /update-note endpoint with the customer name and updated note
+  UPDATE_NOTE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_NOTE_URL" -H "Content-Type: application/json" -d '{
+    "customername": "'$CUSTOMERNAME'",
+    "note": "'"$UPDATED_NOTE"'"
+  }')
+
+  # Extract the HTTP status code and response body
+  HTTP_STATUS="${UPDATE_NOTE_RESPONSE: -3}"
+  HTTP_BODY="${UPDATE_NOTE_RESPONSE%???}"
+
+  echo "Update Note response: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  # Check if the HTTP status code is 200
+  if [ "$HTTP_STATUS" -ne 200 ]; then
+    echo "Error: Note update failed."
+    exit 1
+  fi
+
+  echo "Note updated successfully."
+  echo "--------------------------"
+}
+
+
+
+# Function to insert or append a note for a customer
+insert_note() {
+  echo "Test: INSERT NOTE"
+  echo "--------------------------"
+  echo "Customer Name: $CUSTOMERNAME"
+  echo "URL: $INSERT_NOTE_URL"
+
+  # Send PUT request to the /insert-note endpoint with the customer name and new note
+  INSERT_NOTE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$INSERT_NOTE_URL" -H "Content-Type: application/json" -d '{
+    "customername": "'$CUSTOMERNAME'",
+    "new_note": "'"$NEW_NOTE"'"
+  }')
+
+  # Extract the HTTP status code and response body
+  HTTP_STATUS="${INSERT_NOTE_RESPONSE: -3}"
+  HTTP_BODY="${INSERT_NOTE_RESPONSE%???}"
+
+  echo "Insert Note response: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  # Check if the HTTP status code is 200
+  if [ "$HTTP_STATUS" -ne 200 ]; then
+    echo "Error: Note insertion failed."
+    exit 1
+  fi
+
+  echo "Note inserted successfully."
+  echo "--------------------------"
+}
+
+
 
 
 
@@ -327,7 +394,7 @@ show_database_table(){
   fi
 
   # Run the query to list all rows in the 'customers' table
-  docker exec -i "$CONTAINER_ID" psql -U "$CUSTOMER_POSTGRES_DB_USER" -d "$CUSTOMER_POSTGRES_DB_NAME" -c "SELECT * FROM Customer;"
+  docker exec -i "$CONTAINER_ID" psql -U "$CUSTOMER_POSTGRES_DB_USER" -d "$CUSTOMER_POSTGRES_DB_NAME" -c "SELECT * FROM customers;"
 
 }
 
@@ -354,6 +421,12 @@ update_email
 get_customer_details
 
 update_password
+get_customer_details
+
+insert_note
+get_customer_details
+
+update_note
 get_customer_details
 
 update_customer
