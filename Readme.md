@@ -55,6 +55,18 @@ So your services connect like this:
     customer-service connects to customer-db at postgres://customer:customer_password@customer-db:5432/customer_db
     salestracking-service connects to salestracking-db at postgres://salestracking:salestracking_password@salestracking-db:5432/salestracking_db
 
-This is how Docker networks isolate them.
+# This is how Docker networks isolate them.
+
+USER_POSTGRES_DB_PORT=5432
+CUSTOMER_POSTGRES_DB_PORT=5433
+SALESTRACKING_POSTGRES_DB_PORT=5434
+
+This allows you to run:
+
+psql -U user -h localhost -p 5432 -d user_db
+psql -U customer -h localhost -p 5433 -d customer_db
+psql -U salestracking -h localhost -p 5434 -d salestracking_db
+
+
 
 

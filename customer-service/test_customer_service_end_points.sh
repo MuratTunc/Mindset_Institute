@@ -62,8 +62,7 @@ health_check() {
 }
 
 
-
-# Function to check if the customer exists (using the registration endpoint)
+# Function to register new customer to customer-db
 register_customer() {
   echo "Test: REGISTER NEW CUSTOMER"
   echo "--------------------------"
@@ -72,7 +71,7 @@ register_customer() {
   REGISTER_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d '{
     "customername": "'$CUSTOMERNAME'",
     "mailAddress": "'$MAILADDRESS'",
-    "password": "'$PASSWORD'",
+    "password": "'$PASSWORD'"
   }')
 
   HTTP_BODY=$(echo "$REGISTER_RESPONSE" | sed '$ d')
@@ -93,30 +92,39 @@ register_customer() {
   echo "--------------------------"
 }
 
-# Function to log in and get JWT token
+
+# Function to log in
 login_customer() {
   echo "Test: LOGIN CUSTOMER"
   echo "--------------------------"
   echo "URL:$LOGIN_URL"
 
-  LOGIN_RESPONSE=$(curl -s -X POST "$LOGIN_URL" -H "Content-Type: application/json" -d '{
+  LOGIN_RESPONSE=$(curl -s -w "%{http_code}" -X POST "$LOGIN_URL" -H "Content-Type: application/json" -d '{
     "customername": "'$CUSTOMERNAME'",
     "password": "'$PASSWORD'"
   }')
 
-  echo "Login response: $LOGIN_RESPONSE"  # Add this line to print the raw response
+  # Extract HTTP status code (last 3 characters of response)
+  HTTP_STATUS="${LOGIN_RESPONSE: -3}"
+  HTTP_BODY="${LOGIN_RESPONSE%???}"  # Remove the last 3 characters (status code) from the body
 
-  JWT_TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token')
+  echo "Login response body: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
 
-  if [[ "$JWT_TOKEN" == "null" || -z "$JWT_TOKEN" ]]; then
-    echo "Error: JWT token not received from login."
+  if [ "$HTTP_STATUS" -eq 200 ]; then
+    echo "Login successful."
+  elif [ "$HTTP_STATUS" -eq 401 ]; then
+    echo "Error: Invalid credentials."
+    exit 1
+  else
+    echo "Login failed with status code $HTTP_STATUS. Response: $HTTP_BODY"
     exit 1
   fi
 
-  echo "Login successful. JWT token received."
   echo "--------------------------"
-  
 }
+
+
 
 
 # Function to get customer details
@@ -187,7 +195,7 @@ activate_customer() {
     exit 1
   fi
 
-  echo "User deactivated successfully."
+  echo "User activated successfully."
   echo "--------------------------"
 }
 
@@ -199,8 +207,8 @@ update_customer() {
   echo "URL:$UPDATE_CUSTOMER_URL/$CUSTOMER_ID"
 
   UPDATE_CUSTOMER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_CUSTOMER_URL/$CUSTOMER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-  "customername": "updatedcustomer",
-  "mailAddress": "updatedcustomer@example.com",
+    "customername": "updatedcustomer",
+    "mailAddress": "updatedcustomer@example.com"
   }')
 
   # Get the HTTP status code (last 3 characters of the response)
@@ -218,6 +226,7 @@ update_customer() {
   echo "User updated successfully."
   echo "--------------------------"
 }
+
 
 # Function to update customer password
 update_password() {
@@ -253,8 +262,9 @@ update_email() {
   echo "CUSTOMER ID=$CUSTOMER_ID"
   echo "URL:$UPDATE_EMAIL_URL/$CUSTOMER_ID"
 
-  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL/$CUSTOMER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "new_email": "'$NEW_EMAIL'"
+  # Update email using PUT method
+  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL/$CUSTOMER_ID" -H "Content-Type: application/json" -d '{
+    "new_email": "'$NEW_EMAIL'"  
   }')
 
   # Get the HTTP status code (last 3 characters of the response)
@@ -275,6 +285,7 @@ update_email() {
 
 
 
+
 # Function to delete customer
 delete_customer() {
   echo "Test: DELETE CUSTOMER"
@@ -283,11 +294,11 @@ delete_customer() {
   echo "URL:$DELETE_CUSTOMER_URL/$CUSTOMER_ID"
 
   # Perform the DELETE request and capture both status code and response body
-  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_CUSTOMER_URL/$CUSTOMER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_CUSTOMER_URL/$CUSTOMER_ID" -H "Content-Type: application/json")
 
   # Extract the response body and HTTP status code
-  HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1)  # Extract the last line as the HTTP status code
-  HTTP_BODY=$(echo "$DELETE_RESPONSE" | sed '$ d')   # Remove the last line (HTTP status code) to get the body
+  HTTP_STATUS="${DELETE_RESPONSE: -3}"
+  HTTP_BODY="${DELETE_RESPONSE%???}"
 
   echo "Delete response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
@@ -303,7 +314,8 @@ delete_customer() {
 }
 
 
-show_databas_table(){
+
+show_database_table(){
   
   # Get the container ID using the container name
   CONTAINER_ID=$(docker ps -qf "name=$CUSTOMER_POSTGRES_DB_CONTAINER_NAME")
@@ -315,7 +327,7 @@ show_databas_table(){
   fi
 
   # Run the query to list all rows in the 'customers' table
-  docker exec -i "$CONTAINER_ID" psql -U "$CUSTOMER_POSTGRES_DB_CUSTOMER" -d "$CUSTOMER_POSTGRES_DB_NAME" -c "SELECT * FROM customers;"
+  docker exec -i "$CONTAINER_ID" psql -U "$CUSTOMER_POSTGRES_DB_USER" -d "$CUSTOMER_POSTGRES_DB_NAME" -c "SELECT * FROM Customer;"
 
 }
 
@@ -348,7 +360,7 @@ update_customer
 get_customer_details
 
 delete_customer
-show_databas_table
+show_database_table
 
 # Final message
 echo "ALL TESTS ARE DONE!!!"

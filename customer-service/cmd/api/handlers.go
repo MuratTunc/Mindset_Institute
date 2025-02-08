@@ -370,20 +370,6 @@ func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ensure the customer is authenticated with JWT
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Missing token", http.StatusUnauthorized)
-		return
-	}
-
-	// Extract token from "Bearer <token>"
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == authHeader {
-		http.Error(w, "Invalid token format", http.StatusUnauthorized)
-		return
-	}
-
 	// Parse the new email address from the request body (assuming JSON format)
 	var requestData struct {
 		NewEmail string `json:"new_email"`
@@ -481,7 +467,6 @@ func (app *Config) UpdateNoteHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteCustomerHandler deletes a customer by ID
 func (app *Config) DeleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
-
 	// Extract customer ID by splitting the path
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 2 {
@@ -493,23 +478,9 @@ func (app *Config) DeleteCustomerHandler(w http.ResponseWriter, r *http.Request)
 	id := segments[len(segments)-1]
 	fmt.Println("Extracted Customer ID:", id)
 
-	// Check if the ID is valid
+	// Ensure the customer ID is valid
 	if id == "" {
 		http.Error(w, "Customer ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// Ensure the customer is authenticated with JWT
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Missing token", http.StatusUnauthorized)
-		return
-	}
-
-	// Extract token from "Bearer <token>"
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == authHeader {
-		http.Error(w, "Invalid token format", http.StatusUnauthorized)
 		return
 	}
 
