@@ -17,13 +17,13 @@ func TestLoadEnvVariables(t *testing.T) {
 		t.Fatalf("Error loading .env file")
 	}
 
-	DBHost = os.Getenv("USER_POSTGRES_DB_HOST")
-	DBUser = os.Getenv("USER_POSTGRES_DB_USER")
-	DBPassword = os.Getenv("USER_POSTGRES_DB_PASSWORD")
-	DBName = os.Getenv("USER_POSTGRES_DB_NAME")
-	ServicePort = os.Getenv("USER_SERVICE_PORT")
-	ServiceName = os.Getenv("USER_SERVICE_NAME")
-	JWTSecret = os.Getenv("USER_SERVICE_JWT_SECRET")
+	DBHost := os.Getenv("USER_POSTGRES_DB_HOST")
+	DBUser := os.Getenv("USER_POSTGRES_DB_USER")
+	DBPassword := os.Getenv("USER_POSTGRES_DB_PASSWORD")
+	DBName := os.Getenv("USER_POSTGRES_DB_NAME")
+	ServicePort := os.Getenv("USER_SERVICE_PORT")
+	ServiceName := os.Getenv("USER_SERVICE_NAME")
+	JWTSecret := os.Getenv("USER_SERVICE_JWT_SECRET")
 
 	fmt.Println("🔧 Loaded Environment Variables-USER_SERVICE")
 	fmt.Printf("DBUser: %s\n", DBUser)

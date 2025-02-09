@@ -68,5 +68,43 @@ psql -U customer -h localhost -p 5433 -d customer_db
 psql -U salestracking -h localhost -p 5434 -d salestracking_db
 
 
+## user-service unit test:
+
+Explanation:
+
+    TestCreateUserHandler:
+        This test simulates a POST request to create a new user and checks that the response contains the success message and status code 200.
+
+    TestLoginUserHandler:
+        This test checks that the login endpoint returns a successful response (status code 200) and includes a JWT token in the response body.
+
+    TestHealthCheckHandler:
+        A basic test to check if the health check endpoint correctly responds with "OK" when the database is available.
 
 
+    Mocking the Database:
+        You'll need to use a mocking library or mock the GORM database interactions to ensure the tests are isolated and do not require an actual database connection.
+
+    Other Tests:
+        You can similarly add unit tests for other handler functions, such as UpdatePasswordHandler, UpdateEmailHandler, DeactivateUserHandler, and so on.
+
+    Testing JWT Authentication:
+        For functions that require JWT authentication, mock the JWT token validation and test different scenarios (e.g., valid/invalid tokens).
+
+
+
+## Steps to Integrate Swagger:
+
+Install Swagger in your project (if you haven’t already):
+
+go install github.com/swaggo/swag/cmd/swag@latest
+go get -u github.com/swaggo/gin-swagger
+go get -u github.com/swaggo/files
+
+Generate Swagger Docs:
+
+swag init
+
+Run Your Server and access Swagger UI at:
+
+http://localhost:8080/swagger/index.html

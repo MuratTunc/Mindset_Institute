@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // Define routes for the application
@@ -31,6 +32,7 @@ func (app *Config) routes() http.Handler {
 
 	// Custom health check endpoint
 	mux.Get("/health", app.HealthCheckHandler)
+	mux.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	// Public Routes (No authentication required)
 	mux.Post("/register", app.CreateUserHandler) // Handle user registration

@@ -76,7 +76,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// HealthCheckHandler checks the database connection using GORM
+// HealthCheckHandler checks the database connection
+// @Summary Health Check
+// @Description Checks if the database connection is healthy
+// @Tags Health
+// @Produce plain
+// @Success 200 {string} string "OK"
+// @Failure 500 {string} string "Database connection failed"
+// @Router /health [get]
 func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	sqlDB, err := app.DB.DB() // Get *sql.DB from *gorm.DB
 	if err != nil {
@@ -110,8 +117,18 @@ func (app *Config) CheckPassword(hashedPassword, password string) bool {
 	return err == nil
 }
 
-// CreateUserHandler inserts a new user with a hashed password using GORM
-
+// CreateUserHandler registers a new user
+// @Summary Register User
+// @Description Creates a new user account
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body User true "User Data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 409 {string} string "User already exists"
+// @Failure 500 {string} string "Error inserting user"
+// @Router /register [post]
 func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -167,7 +184,17 @@ func (app *Config) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// LoginUserHandler verifies user credentials using GORM
+// LoginUserHandler authenticates a user
+// @Summary Login User
+// @Description Logs in a user and returns a JWT token
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param credentials body User true "User Credentials"
+// @Success 200 {object} map[string]string
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 401 {string} string "Invalid credentials"
+// @Router /login [post]
 func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	var storedUser User
@@ -212,6 +239,20 @@ func (app *Config) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdatePasswordHandler updates a user's password if they exist
+// @Summary Update user password
+// @Description Updates the password for an existing user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body struct {
+// @Param username body string true "Username of the user"
+// @Param new_password body string true "New password for the user"
+// } true "Request body"
+// @Success 200 {string} string "Password updated successfully"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Database error or hashing error"
+// @Router /update-password [post]
 func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
 		Username    string `json:"username"`
@@ -265,6 +306,14 @@ func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // GetUserHandler retrieves a user by ID
+// @Summary Get User
+// @Description Fetch a user by ID
+// @Tags Users
+// @Produce json
+// @Param id query string true "User ID"
+// @Success 200 {object} User
+// @Failure 404 {string} string "User not found"
+// @Router /user [get]
 func (app *Config) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	id := r.URL.Query().Get("id")
@@ -292,6 +341,23 @@ func (app *Config) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// UpdateUserHandler updates user information if they exist
+// @Summary Update user details
+// @Description Updates the details of an existing user, such as password, email, or role
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body struct {
+// @Param username body string true "Username of the user"
+// @Param password body string false "New password for the user (optional)"
+// @Param email body string false "New email for the user (optional)"
+// @Param role body string false "New role for the user (optional)"
+// } true "Request body"
+// @Success 200 {object} map[string]string "User updated successfully"
+// @Failure 400 {string} string "Invalid request body or missing username"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Database error or hashing error"
+// @Router /update-user [post]
 func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get username and updated fields
 	var requestBody struct {
@@ -353,6 +419,18 @@ func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// DeactivateUserHandler deactivates a user by setting the "Activated" field to false
+// @Summary Deactivate a user
+// @Description Deactivates a user account by setting their "Activated" status to false
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param requestBody body struct{Username string `json:"username"`} true "Username of the user to deactivate"
+// @Success 200 {object} map[string]string "User deactivated successfully"
+// @Failure 400 {string} string "Invalid request body or missing username"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Failed to deactivate user"
+// @Router /deactivate-user [post]
 func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get username
 	var requestBody struct {
@@ -394,6 +472,18 @@ func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request)
 	})
 }
 
+// ActivateUserHandler activates a user by setting the "Activated" field to true
+// @Summary Activate a user
+// @Description Activates a user account by setting their "Activated" status to true
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param requestBody body struct{Username string `json:"username"`} true "Username of the user to activate"
+// @Success 200 {object} map[string]string "User activated successfully"
+// @Failure 400 {string} string "Invalid request body or missing username"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Failed to activate user"
+// @Router /activate-user [post]
 func (app *Config) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get username
 	var requestBody struct {
@@ -435,6 +525,20 @@ func (app *Config) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// UpdateEmailHandler updates a user's email
+// @Summary Update a user's email
+// @Description Updates a user's email address after validating their JWT token
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer JWT token"
+// @Param requestBody body struct{Username string `json:"username"`; NewEmail string `json:"new_email"`} true "Username and new email"
+// @Success 200 {object} map[string]string "Email updated successfully"
+// @Failure 400 {string} string "Invalid request body or email format"
+// @Failure 401 {string} string "Missing or invalid token"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Failed to update email"
+// @Router /update-email [post]
 func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the user is authenticated with JWT
 	authHeader := r.Header.Get("Authorization")
@@ -514,7 +618,20 @@ func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateRoleHandler updates the role of a user by username (from the request body)
+// UpdateRoleHandler updates a user's role
+// @Summary Update a user's role
+// @Description Updates a user's role after validating their JWT token
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer JWT token"
+// @Param requestBody body struct{Username string `json:"username"`; Role string `json:"role"`} true "Username and new role"
+// @Success 200 {string} string "User role updated successfully"
+// @Failure 400 {string} string "Invalid request body or missing fields"
+// @Failure 401 {string} string "Missing or invalid token"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Failed to update role"
+// @Router /update-role [post]
 func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the user is authenticated with JWT
 	authHeader := r.Header.Get("Authorization")
@@ -592,7 +709,14 @@ func isValidEmail(email string) bool {
 	return re.MatchString(email)
 }
 
-// DeleteUserHandler deletes a user by username
+// DeleteUserHandler deletes a user
+// @Summary Delete User
+// @Description Removes a user by ID
+// @Tags Users
+// @Param id query string true "User ID"
+// @Success 200 {string} string "User deleted successfully"
+// @Failure 404 {string} string "User not found"
+// @Router /user [delete]
 func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the username from the request body (assuming JSON format)
 	var requestData struct {
