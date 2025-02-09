@@ -161,11 +161,13 @@ get_customer_details() {
 deactivate_customer() {
   echo "Test: DEACTIVATE CUSTOMER"
   echo "--------------------------"
-  echo "CUSTOMER ID: $CUSTOMER_ID"
-  echo "URL:$DEACTIVATE_CUSTOMER_URL/$CUSTOMER_ID"
+  echo "CUSTOMERNAME: $CUSTOMERNAME"
+  echo "URL: $DEACTIVATE_CUSTOMER_URL"
 
-  # Use the DEACTIVATE_CUSTOMER_URL variable and append the customer ID directly
-  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_CUSTOMER_URL/$CUSTOMER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+  # Use the DEACTIVATE_CUSTOMER_URL variable and send the customername in the request body
+  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_CUSTOMER_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+    "customername": "'"$CUSTOMERNAME"'"
+  }')
 
   HTTP_BODY=$(echo "$DEACTIVATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$DEACTIVATE_RESPONSE" | tail -n1)
@@ -186,11 +188,13 @@ deactivate_customer() {
 activate_customer() {
   echo "Test: ACTIVATE CUSTOMER"
   echo "--------------------------"
-  echo "CUSTOMER ID: $CUSTOMER_ID"
-  echo "URL:$ACTIVATE_CUSTOMER_URL/$CUSTOMER_ID"
+  echo "CUSTOMERNAME: $CUSTOMERNAME"
+  echo "URL: $ACTIVATE_CUSTOMER_URL"
 
-  # Use the ACTIVATE_CUSTOMER_URL variable and append the customer ID directly
-  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$ACTIVATE_CUSTOMER_URL/$CUSTOMER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+  # Use the ACTIVATE_CUSTOMER_URL variable and send the customername in the request body
+  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$ACTIVATE_CUSTOMER_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+    "customername": "'"$CUSTOMERNAME"'"
+  }')
 
   HTTP_BODY=$(echo "$ACTIVATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$ACTIVATE_RESPONSE" | tail -n1)
@@ -212,10 +216,12 @@ activate_customer() {
 update_customer() {
   echo "Test: UPDATE CUSTOMER"
   echo "--------------------------"
-  echo "URL:$UPDATE_CUSTOMER_URL/$CUSTOMER_ID"
+  echo "CUSTOMERNAME: $CUSTOMERNAME"
+  echo "URL: $UPDATE_CUSTOMER_URL"
 
-  UPDATE_CUSTOMER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_CUSTOMER_URL/$CUSTOMER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "customername": "updatedcustomer",
+  # Use the UPDATE_CUSTOMER_URL variable and send the customername and new details in the request body
+  UPDATE_CUSTOMER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_CUSTOMER_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+    "customername": "'"$CUSTOMERNAME"'",
     "mailAddress": "updatedcustomer@example.com"
   }')
 
@@ -234,6 +240,7 @@ update_customer() {
   echo "User updated successfully."
   echo "--------------------------"
 }
+
 
 
 # Function to update customer password
@@ -263,16 +270,18 @@ update_password() {
   echo "--------------------------"
 }
 
+
 # Function to update customer email address
 update_email() {
   echo "Test: UPDATE EMAIL ADDRESS"
   echo "--------------------------"
-  echo "CUSTOMER ID=$CUSTOMER_ID"
-  echo "URL:$UPDATE_EMAIL_URL/$CUSTOMER_ID"
+  echo "CUSTOMERNAME: $CUSTOMERNAME"
+  echo "URL: $UPDATE_EMAIL_URL"
 
   # Update email using PUT method
-  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL/$CUSTOMER_ID" -H "Content-Type: application/json" -d '{
-    "new_email": "'$NEW_EMAIL'"  
+  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL" -H "Content-Type: application/json" -d '{
+    "customername": "'"$CUSTOMERNAME"'",
+    "new_email": "'"$NEW_EMAIL"'"
   }')
 
   # Get the HTTP status code (last 3 characters of the response)
@@ -474,11 +483,13 @@ get_logged_in_customers() {
 delete_customer() {
   echo "Test: DELETE CUSTOMER"
   echo "--------------------------"
-  echo "CUSTOMER ID=$CUSTOMER_ID"
-  echo "URL:$DELETE_CUSTOMER_URL/$CUSTOMER_ID"
+  echo "CUSTOMERNAME: $CUSTOMERNAME"
+  echo "URL: $DELETE_CUSTOMER_URL"
 
   # Perform the DELETE request and capture both status code and response body
-  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_CUSTOMER_URL/$CUSTOMER_ID" -H "Content-Type: application/json")
+  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_CUSTOMER_URL" -H "Content-Type: application/json" -d '{
+    "customername": "'"$CUSTOMERNAME"'"
+  }')
 
   # Extract the response body and HTTP status code
   HTTP_STATUS="${DELETE_RESPONSE: -3}"
