@@ -40,10 +40,10 @@ func (app *Config) routes() http.Handler {
 	mux.Get("/logged-in-customers", app.GetLoggedInCustomersHandler)
 	mux.Get("/customer", app.GetCustomerHandler) // Retrieve a customer by ID
 
-	mux.Put("/update-customer/{id}", app.UpdateCustomerHandler)         // Update customer by ID
-	mux.Put("/deactivate-customer/{id}", app.DeactivateCustomerHandler) // Deactivate customer by ID
-	mux.Put("/activate-customer/{id}", app.ActivateCustomerHandler)     // Activate customer by ID
-	mux.Put("/update-email/{id}", app.UpdateEmailHandler)               // Update customer's email address
+	mux.Put("/update-customer", app.UpdateCustomerHandler)         // Update customer by ID
+	mux.Put("/deactivate-customer", app.DeactivateCustomerHandler) // Deactivate customer by ID
+	mux.Put("/activate-customer", app.ActivateCustomerHandler)     // Activate customer by ID
+	mux.Put("/update-email", app.UpdateEmailHandler)               // Update customer's email address
 	mux.Put("/update-note", app.UpdateNoteHandler)
 	mux.Put("/insert-note", app.InsertNoteHandler) // Route to insert new note into an existing one
 

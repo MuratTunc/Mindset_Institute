@@ -6,9 +6,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"strings"
 
-	"github.com/go-chi/chi"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -426,91 +424,127 @@ func (app *Config) GetCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(customer)
 }
 
-// UpdateCustomerHandler updates customer details
-// @Summary Update a customer by ID
-// @Description This endpoint updates the details of an existing customer, including the option to update the password.
-// @Tags customers
+// UpdateCustomerHandler updates customer details based on customername in the request body
+// @Summary Update customer details
+// @Description This endpoint updates customer information based on the customername provided in the request body.
+// @Tags Customer
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Customer ID"
-// @Param customer body Customer true "Customer details to update"
+// @Param customer body struct {
+//
+//	    Customername string `json:"customername"`
+//	    Password     string `json:"password,omitempty"`
+//	    Note         string `json:"note,omitempty"`
+//	    MailAddress  string `json:"mail_address,omitempty"`
+//	} true "Customer details to update"
+//
 // @Success 200 {string} string "Customer updated successfully"
 // @Failure 400 {string} string "Invalid request body"
 // @Failure 404 {string} string "Customer not found"
-// @Failure 500 {string} string "Database error"
-// @Router /customers/{id} [put]
+// @Failure 500 {string} string "Database error or internal error"
+// @Router /customers/update [put]
 func (app *Config) UpdateCustomerHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the customer ID from the URL path parameter
-	id := chi.URLParam(r, "id")
+	// Define a struct to hold the data from the request body
+	var request struct {
+		Customername string `json:"customername"`
+		Password     string `json:"password,omitempty"`
+		Note         string `json:"note,omitempty"`
+		MailAddress  string `json:"mail_address,omitempty"`
+	}
 
+	// Decode the request body into the struct
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Find the customer by customername
 	var customer Customer
-	result := app.DB.First(&customer, id)
+	result := app.DB.Where("customername = ?", request.Customername).First(&customer)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			http.Error(w, ErrCustomerNotFound, http.StatusNotFound)
+			http.Error(w, "Customer not found", http.StatusNotFound)
 			return
 		}
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&customer)
-	if err != nil {
-		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
-		return
-	}
-
-	// If password is being updated, hash it
-	if customer.Password != "" {
-		hashedPassword, err := app.HashPassword(customer.Password)
+	// Update the customer's fields if provided in the request body
+	if request.Password != "" {
+		// Hash the new password
+		hashedPassword, err := app.HashPassword(request.Password)
 		if err != nil {
-			http.Error(w, ErrHashingPassword, http.StatusInternalServerError)
+			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 			return
 		}
 		customer.Password = hashedPassword
 	}
 
-	app.DB.Save(&customer)
+	// Update the other fields (note, mail address) if provided
+	if request.Note != "" {
+		customer.Note = request.Note
+	}
+	if request.MailAddress != "" {
+		customer.MailAddress = request.MailAddress
+	}
+
+	// Save the updated customer record
+	if err := app.DB.Save(&customer).Error; err != nil {
+		http.Error(w, "Failed to update customer", http.StatusInternalServerError)
+		return
+	}
+
+	// Send a success response
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, CustomerUpdatedSuccess)
+	fmt.Fprintln(w, "Customer updated successfully")
 }
 
-// DeactivateCustomerHandler deactivates a customer by ID
-// @Summary Deactivate a customer by ID
+// DeactivateCustomerHandler deactivates a customer by customername
+// @Summary Deactivate a customer by customername
 // @Description This endpoint deactivates a customer's account by setting the "Activated" field to false.
 // @Tags customers
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Customer ID"
-// @Success 200 {object} map[string]string "Success message with customer ID"
-// @Failure 400 {string} string "Customer ID is required"
+// @Param customer body struct {
+//
+//	    Customername string `json:"customername"`
+//	} true "Customer name to deactivate"
+//
+// @Success 200 {object} map[string]string "Success message"
+// @Failure 400 {string} string "Invalid request body or Customer name is required"
 // @Failure 404 {string} string "Customer not found"
 // @Failure 500 {string} string "Failed to deactivate customer"
-// @Router /customers/{id}/deactivate [put]
+// @Router /customers/deactivate [put]
 func (app *Config) DeactivateCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	// Define a struct to hold the data from the request body
+	var request struct {
+		Customername string `json:"customername"`
+	}
 
-	// Extract customer ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+	// Decode the request body into the struct
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// The customer ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted Customer ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+	// Ensure customer name is provided
+	if request.Customername == "" {
+		http.Error(w, "Customer name is required", http.StatusBadRequest)
 		return
 	}
 
-	//  Finds the customer in the database.
+	// Find the customer by customername
 	var customer Customer
-	result := app.DB.First(&customer, id)
+	result := app.DB.Where("customername = ?", request.Customername).First(&customer)
 	if result.Error != nil {
-		http.Error(w, "Customer not found", http.StatusNotFound)
+		if result.Error == gorm.ErrRecordNotFound {
+			http.Error(w, "Customer not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
@@ -526,51 +560,58 @@ func (app *Config) DeactivateCustomerHandler(w http.ResponseWriter, r *http.Requ
 	// Send success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message":     "Customer deactivated successfully",
-		"customer_id": id,
+		"message": "Customer deactivated successfully",
 	})
 }
 
-// ActivateCustomerHandler activates a customer by ID
-// @Summary Activate a customer by ID
+// ActivateCustomerHandler activates a customer by customername
+// @Summary Activate a customer by customername
 // @Description This endpoint activates a customer's account by setting the "Activated" field to true.
 // @Tags customers
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Customer ID"
-// @Success 200 {object} map[string]string "Success message with customer ID"
-// @Failure 400 {string} string "Customer ID is required"
+// @Param customer body struct {
+//
+//	    Customername string `json:"customername"`
+//	} true "Customer name to activate"
+//
+// @Success 200 {object} map[string]string "Success message"
+// @Failure 400 {string} string "Invalid request body or Customer name is required"
 // @Failure 404 {string} string "Customer not found"
 // @Failure 500 {string} string "Failed to activate customer"
-// @Router /customers/{id}/activate [put]
+// @Router /customers/activate [put]
 func (app *Config) ActivateCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	// Define a struct to hold the data from the request body
+	var request struct {
+		Customername string `json:"customername"`
+	}
 
-	// Extract customer ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+	// Decode the request body into the struct
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// The customer ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted Customer ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+	// Ensure customer name is provided
+	if request.Customername == "" {
+		http.Error(w, "Customer name is required", http.StatusBadRequest)
 		return
 	}
 
-	//  Finds the customer in the database.
+	// Find the customer by customername
 	var customer Customer
-	result := app.DB.First(&customer, id)
+	result := app.DB.Where("customername = ?", request.Customername).First(&customer)
 	if result.Error != nil {
-		http.Error(w, "Customer not found", http.StatusNotFound)
+		if result.Error == gorm.ErrRecordNotFound {
+			http.Error(w, "Customer not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	// Set Activated to false
+	// Set Activated to true
 	customer.Activated = true
 
 	// Update the customer in the database
@@ -582,87 +623,77 @@ func (app *Config) ActivateCustomerHandler(w http.ResponseWriter, r *http.Reques
 	// Send success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message":     "Customer activated successfully",
-		"customer_id": id,
+		"message": "Customer activated successfully",
 	})
 }
 
-// UpdateEmailHandler updates a customer's email address by ID
+// UpdateEmailHandler updates a customer's email address
 // @Summary Update a customer's email address
 // @Description This endpoint allows a customer to update their email address. The new email must be valid and not empty.
 // @Tags customers
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Customer ID"
-// @Param new_email body string true "New email address"
+// @Param customer body struct {
+//
+//	    Customername string `json:"customername"`
+//	    NewEmail     string `json:"new_email"`
+//	} true "Customer name and new email address"
+//
 // @Success 200 {string} string "Email updated successfully"
 // @Failure 400 {string} string "Invalid request body or invalid email format"
 // @Failure 404 {string} string "Customer not found"
 // @Failure 500 {string} string "Failed to update email"
-// @Router /customers/{id}/email [put]
+// @Router /customers/email [put]
 func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract customer ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
-		return
+	// Define a struct to hold the data from the request body
+	var request struct {
+		Customername string `json:"customername"`
+		NewEmail     string `json:"new_email"`
 	}
 
-	// The customer ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted Customer ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// Parse the new email address from the request body (assuming JSON format)
-	var requestData struct {
-		NewEmail string `json:"new_email"`
-	}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&requestData); err != nil {
+	// Decode the request body into the struct
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Ensure the new email is not empty
-	if requestData.NewEmail == "" {
-		http.Error(w, "New email is required", http.StatusBadRequest)
+	// Ensure customer name and email are provided
+	if request.Customername == "" || request.NewEmail == "" {
+		http.Error(w, "Customer name and new email are required", http.StatusBadRequest)
 		return
 	}
 
 	// Check if the new email is valid (basic format validation)
-	if !isValidEmail(requestData.NewEmail) {
+	if !isValidEmail(request.NewEmail) {
 		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
-	// Find the customer by ID
+	// Find the customer by customername
 	var customer Customer
-	result := app.DB.Where("id = ?", id).First(&customer)
-
-	// If the customer is not found
-	if result.RowsAffected == 0 {
-		http.Error(w, "Customer not found", http.StatusNotFound)
+	result := app.DB.Where("customername = ?", request.Customername).First(&customer)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			http.Error(w, "Customer not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
 	// Update the customer's email address
-	customer.MailAddress = requestData.NewEmail
+	customer.MailAddress = request.NewEmail
 	if err := app.DB.Save(&customer).Error; err != nil {
 		http.Error(w, "Failed to update email", http.StatusInternalServerError)
 		return
 	}
 
-	// Log the email update action (optional)
-	fmt.Printf("Customer %s (ID: %s) updated their email\n", customer.Customername, id)
-
 	// Respond with success message
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Email updated successfully")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Email updated successfully",
+	})
 }
 
 // UpdateNoteHandler updates the Note field for a customer
@@ -774,43 +805,50 @@ func (app *Config) InsertNoteHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// DeleteCustomerHandler deletes a customer by ID
-// @Summary Delete a customer by their ID
-// @Description This endpoint allows a user to delete a customer from the database by their ID.
+// DeleteCustomerHandler deletes a customer by their customername
+// @Summary Delete a customer by their customername
+// @Description This endpoint allows a user to delete a customer from the database by their customername.
 // @Tags customers
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Customer ID"
+// @Param customername body string true "Customer name"
 // @Success 200 {string} string "Customer deleted successfully"
-// @Failure 400 {string} string "Customer ID is required"
+// @Failure 400 {string} string "Customer name is required"
 // @Failure 404 {string} string "Customer not found"
 // @Failure 500 {string} string "Failed to delete customer"
-// @Router /customers/{id} [delete]
+// @Router /customers/delete [delete]
 func (app *Config) DeleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract customer ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+	var request struct {
+		Customername string `json:"customername"`
+	}
+
+	// Decode request body to get the customer name
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// The customer ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted Customer ID:", id)
-
-	// Ensure the customer ID is valid
-	if id == "" {
-		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+	// Ensure the customer name is provided
+	if request.Customername == "" {
+		http.Error(w, "Customer name is required", http.StatusBadRequest)
 		return
 	}
 
-	// Find the customer to delete by ID
+	// Find the customer by customername
 	var customer Customer
-	result := app.DB.Where("id = ?", id).Delete(&customer)
+	result := app.DB.Where("customername = ?", request.Customername).First(&customer)
 
-	// If no rows were affected, the customer was not found
+	// If the customer is not found
 	if result.RowsAffected == 0 {
-		http.Error(w, ErrCustomerNotFound, http.StatusNotFound)
+		http.Error(w, "Customer not found", http.StatusNotFound)
+		return
+	}
+
+	// Delete the customer
+	result = app.DB.Delete(&customer)
+	if result.Error != nil {
+		http.Error(w, "Failed to delete customer", http.StatusInternalServerError)
 		return
 	}
 
