@@ -23,6 +23,14 @@ const (
 )
 
 // HealthCheckHandler checks the database connection using GORM
+// @Summary Health check
+// @Description Check if the database connection is working
+// @Tags Health
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} string "OK"
+// @Failure 500 {string} string "Database connection failed"
+// @Router /health [get]
 func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	sqlDB, err := app.DB.DB() // Get *sql.DB from *gorm.DB
 	if err != nil {
@@ -42,6 +50,18 @@ func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // InsertSaleHandler creates a new sale record in the database
+// @Summary Insert a new sale record
+// @Description Creates a new sale record with the provided details
+// @Tags Sales
+// @Accept  json
+// @Produce  json
+// @Param salename body string true "Sale Name"
+// @Param note body string false "Sale Note"
+// @Success 200 {object} map[string]string {"message": "Sale record created successfully"}
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 409 {string} string "Sale with this name already exists"
+// @Failure 500 {string} string "Failed to create sale record"
+// @Router /sale [post]
 func (app *Config) InsertSaleHandler(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
@@ -89,6 +109,17 @@ func (app *Config) InsertSaleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteSaleHandler deletes a sale record from the database
+// @Summary Delete a sale record
+// @Description Deletes a sale record identified by salename
+// @Tags Sales
+// @Accept  json
+// @Produce  json
+// @Param salename body string true "Sale Name"
+// @Success 200 {object} map[string]string {"message": "Sale deleted successfully"}
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "Sale not found"
+// @Failure 500 {string} string "Failed to delete sale record"
+// @Router /sale [delete]
 func (app *Config) DeleteSaleHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Salename string `json:"salename"`
@@ -127,6 +158,19 @@ func (app *Config) DeleteSaleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateInCommunicationHandler updates the InCommunication field in the sale record
+// @Summary Update the InCommunication field of a sale record
+// @Description Updates the InCommunication status and appends a note to the sale record
+// @Tags Sales
+// @Accept  json
+// @Produce  json
+// @Param salename body string true "Sale Name"
+// @Param in_communication body bool true "In Communication Status"
+// @Param note body string false "Sale Note"
+// @Success 200 {object} map[string]string {"message": "Sale record updated successfully"}
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "Sale not found"
+// @Failure 500 {string} string "Failed to update sale record"
+// @Router /sale/communication [put]
 func (app *Config) UpdateInCommunicationHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Salename        string `json:"salename"`
@@ -186,6 +230,20 @@ func (app *Config) UpdateInCommunicationHandler(w http.ResponseWriter, r *http.R
 	})
 }
 
+// UpdateDealHandler updates the Deal field in the sale record and modifies other fields as required
+// @Summary Update a sale record's deal status and associated information
+// @Description Updates the Deal field of an existing sale record by salename and optionally appends a note
+// @Tags Sale
+// @Accept json
+// @Produce json
+// @Param salename body string true "Salename"
+// @Param deal body bool true "Deal Status (true for deal, false for not)"
+// @Param note body string false "Note to append to the sale record"
+// @Success 200 {object} map[string]string {"message": "Sale record updated successfully"}
+// @Failure 400 {object} map[string]string {"error": "Invalid request body"}
+// @Failure 404 {object} map[string]string {"error": "Sale not found"}
+// @Failure 500 {object} map[string]string {"error": "Database error"}
+// @Router /sales/update-deal [put]
 func (app *Config) UpdateDealHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Salename string `json:"salename"`
@@ -254,7 +312,19 @@ func (app *Config) UpdateDealHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateClosedHandler updates the sale record's "Closed" field and modifies other fields as required
+// UpdateClosedHandler updates the "Closed" field in the sale record and modifies other fields as required
+// @Summary Close a sale record and update associated information
+// @Description Updates the "Closed" field of an existing sale record by salename and optionally appends a note
+// @Tags Sale
+// @Accept json
+// @Produce json
+// @Param salename body string true "Salename"
+// @Param note body string false "Note to append to the sale record"
+// @Success 200 {object} map[string]string {"message": "Sale record closed successfully"}
+// @Failure 400 {object} map[string]string {"error": "Invalid request body"}
+// @Failure 404 {object} map[string]string {"error": "Sale not found"}
+// @Failure 500 {object} map[string]string {"error": "Database error"}
+// @Router /sales/update-closed [put]
 func (app *Config) UpdateClosedHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Salename string `json:"salename"`
