@@ -27,6 +27,16 @@ const (
 )
 
 // GetLoggedInCustomersHandler returns all customers with LoginStatus set to true
+// @Summary Get all customers with active login status
+// @Description This endpoint retrieves all customers whose LoginStatus is set to true
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Customer "List of active customers"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 404 {object} ErrorResponse "No customers found with active login status"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /customers/logged-in [get]
 func (app *Config) GetLoggedInCustomersHandler(w http.ResponseWriter, r *http.Request) {
 	var customers []Customer
 
@@ -49,6 +59,16 @@ func (app *Config) GetLoggedInCustomersHandler(w http.ResponseWriter, r *http.Re
 }
 
 // GetActivatedCustomerNamesHandler returns the names of customers who are activated
+// @Summary Get names of activated customers
+// @Description This endpoint retrieves the names of customers who are activated
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} string "List of activated customer names"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 404 {object} ErrorResponse "No activated customers found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /customers/activated/names [get]
 func (app *Config) GetActivatedCustomerNamesHandler(w http.ResponseWriter, r *http.Request) {
 	// Declare a slice to hold customer names
 	var customerNames []string
@@ -75,6 +95,14 @@ func (app *Config) GetActivatedCustomerNamesHandler(w http.ResponseWriter, r *ht
 }
 
 // GetAllCustomerHandler retrieves all customers from the database
+// @Summary Get all customers
+// @Description This endpoint retrieves all customers from the database
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Customer "List of all customers"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /customers [get]
 func (app *Config) GetAllCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	var customers []Customer
 
@@ -91,6 +119,19 @@ func (app *Config) GetAllCustomerHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // OrderCustomersHandler retrieves all customers ordered by a specified field
+// @Summary Get all customers ordered by a specific field
+// @Description This endpoint retrieves customers from the database and orders them by a specified field.
+//
+//	If the "order_by" query parameter is not provided or is invalid, the customers will be ordered by "created_at" by default.
+//
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param order_by query string false "Field to order by (customername, created_at, updated_at)"
+// @Success 200 {array} Customer "List of ordered customers"
+// @Failure 400 {object} ErrorResponse "Invalid order_by field"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /customers/order [get]
 func (app *Config) OrderCustomersHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the "order_by" query parameter
 	orderBy := r.URL.Query().Get("order_by")
@@ -121,6 +162,16 @@ func (app *Config) OrderCustomersHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // HealthCheckHandler checks the database connection using GORM
+// @Summary Health check for the database connection
+// @Description This endpoint checks if the database connection is successful by executing a lightweight query.
+//
+//	If the database connection is successful, it returns an "OK" response. Otherwise, it returns an error.
+//
+// @Tags health
+// @Produce  plain
+// @Success 200 {string} string "OK"
+// @Failure 500 {string} string "Database connection failed"
+// @Router /healthcheck [get]
 func (app *Config) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("HealthCheckHandler is Called")
@@ -157,6 +208,22 @@ func (app *Config) CheckPassword(hashedPassword, password string) bool {
 }
 
 // CreateCustomerHandler inserts a new customer with a hashed password using GORM
+// @Summary Create a new customer
+// @Description This endpoint allows you to create a new customer with a hashed password. The customer must provide a unique customer name and mail address.
+//
+//	If the customer already exists (by customer name or mail address), the request will be rejected with a conflict error.
+//
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param customer body Customer true "Customer data"
+// @Success 201 {object} map[string]string {"message": "Customer created successfully", "mailAddress": "string"}
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 400 {string} string "Mail address cannot be empty"
+// @Failure 409 {string} string "Customer already exists"
+// @Failure 500 {string} string "Error hashing password"
+// @Failure 500 {string} string "Error inserting customer"
+// @Router /customers [post]
 func (app *Config) CreateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	var customer Customer
 	err := json.NewDecoder(r.Body).Decode(&customer)
@@ -205,6 +272,21 @@ func (app *Config) CreateCustomerHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // LoginCustomerHandler verifies customer credentials using GORM
+// @Summary Log in a customer
+// @Description This endpoint allows customers to log in by verifying their credentials (customername and password). If credentials are valid, the login status will be updated to true.
+//
+//	If the customer does not exist or the password is incorrect, the request will be rejected with an unauthorized error.
+//
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param customer body Customer true "Customer login credentials"
+// @Success 200 {object} map[string]string {"message": "Login successful", "loginStatus": "true"}
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 401 {string} string "Customer not found"
+// @Failure 401 {string} string "Invalid credentials"
+// @Failure 500 {string} string "Database error"
+// @Router /customers/login [post]
 func (app *Config) LoginCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	var customer Customer
 	var storedCustomer Customer
@@ -241,6 +323,18 @@ func (app *Config) LoginCustomerHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // UpdatePasswordHandler updates a customer's password if they exist
+// @Summary Update customer password
+// @Description This endpoint allows a customer to update their password. The customer must be identified by their customername. The new password is hashed before saving.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param requestData body struct { Customername string `json:"customername"`; NewPassword string `json:"new_password"` } true "Customer password update data"
+// @Success 200 {string} string "Password updated successfully"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Database error"
+// @Failure 500 {string} string "Error hashing password"
+// @Router /customers/update-password [post]
 func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
 		Customername string `json:"customername"`
@@ -294,6 +388,17 @@ func (app *Config) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // GetCustomerHandler retrieves a customer by ID
+// @Summary Get a customer by ID
+// @Description This endpoint retrieves a customer record by the provided ID.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param id query string true "Customer ID"
+// @Success 200 {object} Customer "Customer retrieved successfully"
+// @Failure 400 {string} string "Invalid request"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Database error"
+// @Router /customers [get]
 func (app *Config) GetCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	var customer Customer
 	id := r.URL.Query().Get("id")
@@ -322,6 +427,18 @@ func (app *Config) GetCustomerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateCustomerHandler updates customer details
+// @Summary Update a customer by ID
+// @Description This endpoint updates the details of an existing customer, including the option to update the password.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Customer ID"
+// @Param customer body Customer true "Customer details to update"
+// @Success 200 {string} string "Customer updated successfully"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Database error"
+// @Router /customers/{id} [put]
 func (app *Config) UpdateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the customer ID from the URL path parameter
 	id := chi.URLParam(r, "id")
@@ -358,6 +475,18 @@ func (app *Config) UpdateCustomerHandler(w http.ResponseWriter, r *http.Request)
 	fmt.Fprintln(w, CustomerUpdatedSuccess)
 }
 
+// DeactivateCustomerHandler deactivates a customer by ID
+// @Summary Deactivate a customer by ID
+// @Description This endpoint deactivates a customer's account by setting the "Activated" field to false.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} map[string]string "Success message with customer ID"
+// @Failure 400 {string} string "Customer ID is required"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Failed to deactivate customer"
+// @Router /customers/{id}/deactivate [put]
 func (app *Config) DeactivateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Extract customer ID by splitting the path
@@ -402,6 +531,18 @@ func (app *Config) DeactivateCustomerHandler(w http.ResponseWriter, r *http.Requ
 	})
 }
 
+// ActivateCustomerHandler activates a customer by ID
+// @Summary Activate a customer by ID
+// @Description This endpoint activates a customer's account by setting the "Activated" field to true.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} map[string]string "Success message with customer ID"
+// @Failure 400 {string} string "Customer ID is required"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Failed to activate customer"
+// @Router /customers/{id}/activate [put]
 func (app *Config) ActivateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Extract customer ID by splitting the path
@@ -446,7 +587,19 @@ func (app *Config) ActivateCustomerHandler(w http.ResponseWriter, r *http.Reques
 	})
 }
 
-// UpdateEmailHandler updates the customer's email address by ID
+// UpdateEmailHandler updates a customer's email address by ID
+// @Summary Update a customer's email address
+// @Description This endpoint allows a customer to update their email address. The new email must be valid and not empty.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Customer ID"
+// @Param new_email body string true "New email address"
+// @Success 200 {string} string "Email updated successfully"
+// @Failure 400 {string} string "Invalid request body or invalid email format"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Failed to update email"
+// @Router /customers/{id}/email [put]
 func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract customer ID by splitting the path
 	segments := strings.Split(r.URL.Path, "/")
@@ -512,15 +665,19 @@ func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Email updated successfully")
 }
 
-// Helper function to validate email format (simple validation)
-func isValidEmail(email string) bool {
-	// You can use a more robust regex or library for email validation
-	// Here, a basic validation for a common email format is used
-	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return re.MatchString(email)
-}
-
 // UpdateNoteHandler updates the Note field for a customer
+// @Summary Update a customer's note
+// @Description This endpoint allows a user to update the note field of a customer by customername.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param customername body string true "Customer's name"
+// @Param note body string true "New note for the customer"
+// @Success 200 {string} string "Note updated successfully"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Failed to update note"
+// @Router /customers/note [put]
 func (app *Config) UpdateNoteHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Customername string `json:"customername"`
@@ -561,6 +718,18 @@ func (app *Config) UpdateNoteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // InsertNoteHandler appends new text to the existing "Note" field for a customer
+// @Summary Append a new note to an existing customer's note
+// @Description This endpoint allows a user to append new text to the existing note of a customer by customername.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param customername body string true "Customer's name"
+// @Param new_note body string true "New note to append"
+// @Success 200 {string} string "Note appended successfully"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Failed to update note"
+// @Router /customers/note/append [put]
 func (app *Config) InsertNoteHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Customername string `json:"customername"`
@@ -606,6 +775,17 @@ func (app *Config) InsertNoteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteCustomerHandler deletes a customer by ID
+// @Summary Delete a customer by their ID
+// @Description This endpoint allows a user to delete a customer from the database by their ID.
+// @Tags customers
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Customer ID"
+// @Success 200 {string} string "Customer deleted successfully"
+// @Failure 400 {string} string "Customer ID is required"
+// @Failure 404 {string} string "Customer not found"
+// @Failure 500 {string} string "Failed to delete customer"
+// @Router /customers/{id} [delete]
 func (app *Config) DeleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract customer ID by splitting the path
 	segments := strings.Split(r.URL.Path, "/")
@@ -637,4 +817,12 @@ func (app *Config) DeleteCustomerHandler(w http.ResponseWriter, r *http.Request)
 	// Respond with success message
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Customer deleted successfully")
+}
+
+// Helper function to validate email format (simple validation)
+func isValidEmail(email string) bool {
+
+	// Basic validation for a common email format is used
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
 }
