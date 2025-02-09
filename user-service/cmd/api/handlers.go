@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -293,13 +292,28 @@ func (app *Config) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// UpdateUserHandler updates user details
 func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the user ID from the URL path parameter
-	id := chi.URLParam(r, "id")
+	// Parse request body to get username and updated fields
+	var requestBody struct {
+		Username string `json:"username"`
+		Password string `json:"password,omitempty"`
+		Email    string `json:"email,omitempty"`
+		Role     string `json:"role,omitempty"`
+	}
 
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
+		return
+	}
+
+	if requestBody.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
+		return
+	}
+
+	// Find user by username
 	var user User
-	result := app.DB.First(&user, id)
+	result := app.DB.Where("username = ?", requestBody.Username).First(&user)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			http.Error(w, ErrUserNotFound, http.StatusNotFound)
@@ -309,49 +323,55 @@ func (app *Config) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, ErrInvalidRequestBody, http.StatusBadRequest)
-		return
-	}
-
-	// If password is being updated, hash it
-	if user.Password != "" {
-		hashedPassword, err := app.HashPassword(user.Password)
+	// Update user fields if provided
+	if requestBody.Password != "" {
+		hashedPassword, err := app.HashPassword(requestBody.Password)
 		if err != nil {
 			http.Error(w, ErrHashingPassword, http.StatusInternalServerError)
 			return
 		}
 		user.Password = hashedPassword
 	}
+	if requestBody.Email != "" {
+		user.MailAddress = requestBody.Email
+	}
+	if requestBody.Role != "" {
+		user.Role = requestBody.Role
+	}
 
-	app.DB.Save(&user)
+	// Save updated user
+	if err := app.DB.Save(&user).Error; err != nil {
+		http.Error(w, "Failed to update user", http.StatusInternalServerError)
+		return
+	}
+
+	// Send success response
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, UserUpdatedSuccess)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message":  "User updated successfully",
+		"username": user.Username,
+	})
 }
 
 func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse request body to get username
+	var requestBody struct {
+		Username string `json:"username"`
+	}
 
-	// Extract user ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// The user ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted User ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
+	if requestBody.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
 		return
 	}
 
-	//  Finds the user in the database.
+	// Find user by username
 	var user User
-	result := app.DB.First(&user, id)
+	result := app.DB.Where("username = ?", requestBody.Username).First(&user)
 	if result.Error != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -369,39 +389,36 @@ func (app *Config) DeactivateUserHandler(w http.ResponseWriter, r *http.Request)
 	// Send success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User deactivated successfully",
-		"user_id": id,
+		"message":  "User deactivated successfully",
+		"username": user.Username,
 	})
 }
 
 func (app *Config) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse request body to get username
+	var requestBody struct {
+		Username string `json:"username"`
+	}
 
-	// Extract user ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// The user ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted User ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
+	if requestBody.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
 		return
 	}
 
-	//  Finds the user in the database.
+	// Find user by username
 	var user User
-	result := app.DB.First(&user, id)
+	result := app.DB.Where("username = ?", requestBody.Username).First(&user)
 	if result.Error != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	// Set Activated to false
+	// Set Activated to true
 	user.Activated = true
 
 	// Update the user in the database
@@ -413,30 +430,12 @@ func (app *Config) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Send success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User activated successfully",
-		"user_id": id,
+		"message":  "User activated successfully",
+		"username": user.Username,
 	})
 }
 
-// UpdateEmailHandler updates the user's email address by ID
 func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// The user ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted User ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
 	// Ensure the user is authenticated with JWT
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
@@ -462,39 +461,41 @@ func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the new email address from the request body (assuming JSON format)
+	// Parse the request body (expects JSON with username and new email)
 	var requestData struct {
+		Username string `json:"username"`
 		NewEmail string `json:"new_email"`
 	}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&requestData); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Ensure the new email is not empty
-	if requestData.NewEmail == "" {
-		http.Error(w, "New email is required", http.StatusBadRequest)
+	// Ensure both fields are provided
+	if requestData.Username == "" || requestData.NewEmail == "" {
+		http.Error(w, "Username and new email are required", http.StatusBadRequest)
 		return
 	}
 
-	// Check if the new email is valid (basic format validation)
+	// Validate email format
 	if !isValidEmail(requestData.NewEmail) {
 		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
-	// Find the user by ID
+	// Find user by username
 	var user User
-	result := app.DB.Where("id = ?", id).First(&user)
-
-	// If the user is not found
-	if result.RowsAffected == 0 {
-		http.Error(w, "User not found", http.StatusNotFound)
+	result := app.DB.Where("username = ?", requestData.Username).First(&user)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	// Update the user's email address
+	// Update email
 	user.MailAddress = requestData.NewEmail
 	if err := app.DB.Save(&user).Error; err != nil {
 		http.Error(w, "Failed to update email", http.StatusInternalServerError)
@@ -502,34 +503,20 @@ func (app *Config) UpdateEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log the email update action (optional)
-	fmt.Printf("User %s (ID: %s) updated their email\n", user.Username, id)
+	fmt.Printf("User %s updated their email to %s\n", user.Username, user.MailAddress)
 
-	// Respond with success message
+	// Send success response
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Email updated successfully")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message":   "Email updated successfully",
+		"username":  user.Username,
+		"new_email": user.MailAddress,
+	})
 }
 
-// UpdateRoleHandler updates the role of a user
+// UpdateRoleHandler updates the role of a user by username (from the request body)
 func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Extract user ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// The user ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted User ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-
-	// Ensure the user is authenticated with JWT (same as in your other handlers)
+	// Ensure the user is authenticated with JWT
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
 		http.Error(w, "Missing token", http.StatusUnauthorized)
@@ -552,9 +539,10 @@ func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract the role from the request body (new role)
+	// Extract the username and role from the request body
 	var requestData struct {
-		Role string `json:"role"`
+		Username string `json:"username"`
+		Role     string `json:"role"`
 	}
 
 	// Decode the JSON body into requestData
@@ -565,15 +553,19 @@ func (app *Config) UpdateRoleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the role is provided
+	// Check if username and role are provided
+	if requestData.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
+		return
+	}
 	if requestData.Role == "" {
 		http.Error(w, "Role is required", http.StatusBadRequest)
 		return
 	}
 
-	// Find the user to update by ID
+	// Find the user by username
 	var user User
-	result := app.DB.Where("id = ?", id).First(&user)
+	result := app.DB.Where("username = ?", requestData.Username).First(&user)
 	if result.RowsAffected == 0 {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -600,23 +592,24 @@ func isValidEmail(email string) bool {
 	return re.MatchString(email)
 }
 
-// DeleteUserHandler deletes a user by ID
+// DeleteUserHandler deletes a user by username
 func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the username from the request body (assuming JSON format)
+	var requestData struct {
+		Username string `json:"username"`
+	}
 
-	// Extract user ID by splitting the path
-	segments := strings.Split(r.URL.Path, "/")
-	if len(segments) < 2 {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
+	// Decode the JSON body into requestData
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// The user ID is expected to be the second segment of the URL path
-	id := segments[len(segments)-1]
-	fmt.Println("Extracted User ID:", id)
-
-	// Check if the ID is valid
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
+	// Ensure the username is provided
+	if requestData.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
 		return
 	}
 
@@ -627,39 +620,37 @@ func (app *Config) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract token from "Bearer <token>"
+	// Extract the token and parse it
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenString == authHeader {
 		http.Error(w, "Invalid token format", http.StatusUnauthorized)
 		return
 	}
 
-	// Parse and validate JWT
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})
-
 	if err != nil || !token.Valid {
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 
 	// Optional: Add the username from the token to the request context (for logging or further checks)
-	username := claims["username"].(string)
+	authenticatedUsername := claims["username"].(string)
 
-	// Find the user to delete by ID
+	// Find the user to delete by username
 	var user User
-	result := app.DB.Where("id = ?", id).Delete(&user)
+	result := app.DB.Where("username = ?", requestData.Username).Delete(&user)
 
 	// If no rows were affected, the user was not found
 	if result.RowsAffected == 0 {
-		http.Error(w, ErrUserNotFound, http.StatusNotFound)
+		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	// Log the deletion action (optional)
-	fmt.Printf("User %s (ID: %s) deleted by %s\n", user.Username, id, username)
+	fmt.Printf("User %s (Username: %s) deleted by %s\n", user.Username, requestData.Username, authenticatedUsername)
 
 	// Respond with success message
 	w.WriteHeader(http.StatusOK)

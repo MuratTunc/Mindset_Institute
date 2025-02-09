@@ -40,14 +40,14 @@ func (app *Config) routes() http.Handler {
 	mux.Group(func(mux chi.Router) {
 		mux.Use(AuthMiddleware) // Apply JWT authentication middleware
 
-		mux.Get("/user", app.GetUserHandler)                        // Retrieve a user by ID
-		mux.Post("/update-password", app.UpdatePasswordHandler)     // Password update (requires authentication)
-		mux.Put("/update-user/{id}", app.UpdateUserHandler)         // Update user by ID
-		mux.Put("/deactivate-user/{id}", app.DeactivateUserHandler) // Deactivate user by ID
-		mux.Put("/activate-user/{id}", app.ActivateUserHandler)     // Activate user by ID
-		mux.Put("/update-email/{id}", app.UpdateEmailHandler)       // Update user's email address
-		mux.Put("/update-role/{id}", app.UpdateRoleHandler)         // Update user's role
-		mux.Delete("/delete-user/{id}", app.DeleteUserHandler)      // Delete user by ID
+		mux.Get("/user", app.GetUserHandler)                    // Retrieve a user
+		mux.Post("/update-password", app.UpdatePasswordHandler) // Password update (requires authentication)
+		mux.Put("/update-user", app.UpdateUserHandler)          // Update user
+		mux.Put("/deactivate-user", app.DeactivateUserHandler)  // Deactivate user by username
+		mux.Put("/activate-user", app.ActivateUserHandler)      // Activate user
+		mux.Put("/update-email", app.UpdateEmailHandler)        // Update user's email address
+		mux.Put("/update-role", app.UpdateRoleHandler)          // Update user's role
+		mux.Delete("/delete-user", app.DeleteUserHandler)       // Delete user
 
 	})
 

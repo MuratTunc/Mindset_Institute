@@ -145,14 +145,21 @@ get_user_details() {
 }
 
 # Function to deactivate user
+
 deactivate_user() {
   echo "Test: DEACTIVATE USER"
   echo "--------------------------"
-  echo "USER ID: $USER_ID"
-  echo "URL:$DEACTIVATE_USER_URL/$USER_ID"
+  echo "USERNAME: $USERNAME"
+  echo "URL: $DEACTIVATE_USER_URL"
 
-  # Use the DEACTIVATE_USER_URL variable and append the user ID directly
-  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+  # Construct JSON payload
+  JSON_PAYLOAD=$(jq -n --arg username "$USERNAME" '{username: $username}')
+
+  # Make the PUT request with JSON body
+  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_USER_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
 
   HTTP_BODY=$(echo "$DEACTIVATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$DEACTIVATE_RESPONSE" | tail -n1)
@@ -173,11 +180,17 @@ deactivate_user() {
 activate_user() {
   echo "Test: ACTIVATE USER"
   echo "--------------------------"
-  echo "USER ID: $USER_ID"
-  echo "URL:$ACTIVATE_USER_URL/$USER_ID"
+  echo "USERNAME: $USERNAME"
+  echo "URL: $ACTIVATE_USER_URL"
 
-  # Use the ACTIVATE_USER_URL variable and append the user ID directly
-  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$ACTIVATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+  # Construct JSON payload
+  JSON_PAYLOAD=$(jq -n --arg username "$USERNAME" '{username: $username}')
+
+  # Make the PUT request with JSON body
+  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$ACTIVATE_USER_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
 
   HTTP_BODY=$(echo "$ACTIVATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$ACTIVATE_RESPONSE" | tail -n1)
@@ -190,26 +203,39 @@ activate_user() {
     exit 1
   fi
 
-  echo "User deactivated successfully."
+  echo "User activated successfully."
   echo "--------------------------"
 }
+
 
 
 # Function to update user details
 update_user() {
   echo "Test: UPDATE USER"
   echo "--------------------------"
-  echo "URL:$UPDATE_USER_URL/$USER_ID"
+  echo "USERNAME: $USERNAME"
+  echo "URL: $UPDATE_USER_URL"
 
-  UPDATE_USER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-  "username": "updateduser",
-  "mailAddress": "updateduser@example.com",
-  "role": "Sales Representative"
-  }')
+  # Construct JSON payload dynamically
+  JSON_PAYLOAD=$(jq -n \
+    --arg username "$USERNAME" \
+    --arg email "$EMAIL" \
+    --arg role "$ROLE" \
+    '{
+      username: $username,
+      email: ($email // empty),
+      role: ($role // empty)
+    }')
 
-  # Get the HTTP status code (last 3 characters of the response)
-  HTTP_STATUS="${UPDATE_USER_RESPONSE: -3}"
-  HTTP_BODY="${UPDATE_USER_RESPONSE%???}"
+  # Make the PUT request with JSON body
+  UPDATE_USER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_USER_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
+
+  # Extract HTTP status and response body
+  HTTP_BODY=$(echo "$UPDATE_USER_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$UPDATE_USER_RESPONSE" | tail -n1)
 
   echo "Update response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
@@ -222,6 +248,7 @@ update_user() {
   echo "User updated successfully."
   echo "--------------------------"
 }
+
 
 # Function to update user password
 update_password() {
@@ -254,16 +281,27 @@ update_password() {
 update_email() {
   echo "Test: UPDATE EMAIL ADDRESS"
   echo "--------------------------"
-  echo "USER ID=$USER_ID"
-  echo "URL:$UPDATE_EMAIL_URL/$USER_ID"
+  echo "USERNAME=$USERNAME"
+  echo "URL: $UPDATE_EMAIL_URL"
 
-  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "new_email": "'$NEW_EMAIL'"
-  }')
+  # Construct JSON payload dynamically
+  JSON_PAYLOAD=$(jq -n \
+    --arg username "$USERNAME" \
+    --arg new_email "$NEW_EMAIL" \
+    '{
+      username: $username,
+      new_email: $new_email
+    }')
 
-  # Get the HTTP status code (last 3 characters of the response)
-  HTTP_STATUS="${UPDATE_EMAIL_RESPONSE: -3}"
-  HTTP_BODY="${UPDATE_EMAIL_RESPONSE%???}"
+  # Make the PUT request
+  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
+
+  # Extract HTTP status and response body
+  HTTP_BODY=$(echo "$UPDATE_EMAIL_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$UPDATE_EMAIL_RESPONSE" | tail -n1)
 
   echo "Update email response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
@@ -281,11 +319,12 @@ update_email() {
 update_role() {
   echo "Test: UPDATE USER ROLE"
   echo "--------------------------"
-  echo "USER ID=$USER_ID"
+  echo "USER NAME=$USERNAME"
   
-  echo "URL:$UPDATE_ROLE_URL/$USER_ID"
+  echo "URL:$UPDATE_ROLE_URL"
 
-  UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_ROLE_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+  UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_ROLE_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+    "username": "'$USERNAME'",
     "role": "'$NEW_ROLE'"
   }')
 
@@ -306,15 +345,18 @@ update_role() {
 }
 
 
-# Function to delete user
+
+# Function to delete user by username
 delete_user() {
   echo "Test: DELETE USER"
   echo "--------------------------"
-  echo "USER ID=$USER_ID"
-  echo "URL:$DELETE_USER_URL/$USER_ID"
+  echo "USERNAME=$USERNAME"
+  echo "URL:$DELETE_USER_URL"
 
   # Perform the DELETE request and capture both status code and response body
-  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_USER_URL/$USER_ID" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json")
+  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_USER_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
+    "username": "'$USERNAME'"
+  }')
 
   # Extract the response body and HTTP status code
   HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1)  # Extract the last line as the HTTP status code
@@ -332,6 +374,7 @@ delete_user() {
   echo "User deleted successfully."
   echo "--------------------------"
 }
+
 
 
 show_databas_table(){
@@ -366,6 +409,7 @@ get_user_details
 deactivate_user
 get_user_details
 
+
 activate_user
 get_user_details
 
@@ -381,6 +425,7 @@ get_user_details
 update_user
 get_user_details
 
+show_databas_table
 delete_user
 show_databas_table
 
