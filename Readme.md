@@ -108,3 +108,23 @@ swag init
 Run Your Server and access Swagger UI at:
 
 http://localhost:8080/swagger/index.html
+
+
+### API DOCUMENTATION
+
+## USER-SERVICE
+
+# Test: REGISTER NEW USER
+
+
+- **REQUEST URL**: `http://localhost:8080/register`
+- **REQUEST TYPE**: `POST`
+- **COMMAND**:
+  ```bash
+  curl -X POST "http://localhost:8080/register" -H "Content-Type: application/json" -d '{
+    "username": "testuser",
+    "mailAddress": "testuser@example.com",
+    "password": "TestPassword123",
+    "role": "Admin"
+  }'
+

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load environment variables from .env file
-ENV_FILE="../build-tools/.env"
+ENV_FILE="../../../build-tools/.env"
 if [ -f "$ENV_FILE" ]; then
   export $(grep -v '^#' "$ENV_FILE" | xargs)
 else
@@ -67,17 +67,29 @@ health_check() {
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
-  echo "Test: REGISTER NEW USER"
+  echo "REGISTER NEW USER-ENDPOINT"
   echo "--------------------------"
-  echo "URL:$REGISTER_URL"
-
-  REGISTER_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$REGISTER_URL" -H "Content-Type: application/json" -d '{
+  echo "REQUEST URL: $REGISTER_URL"
+  
+  # Prepare the request body
+  REQUEST_BODY='{
     "username": "'$USERNAME'",
     "mailAddress": "'$MAILADDRESS'",
     "password": "'$PASSWORD'",
     "role": "'$ROLE'"
-  }')
+  }'
 
+  # Define the HTTP request type
+  REQUEST_TYPE="POST"
+
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$REGISTER_URL\" -H \"Content-Type: application/json\" -d '$REQUEST_BODY'"
+  
+  # Send the request and capture the response
+  REGISTER_RESPONSE=$(curl -s -w "\n%{http_code}" -X $REQUEST_TYPE "$REGISTER_URL" -H "Content-Type: application/json" -d "$REQUEST_BODY")
+  
+  
   HTTP_BODY=$(echo "$REGISTER_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$REGISTER_RESPONSE" | tail -n1)
 
@@ -93,9 +105,12 @@ register_user() {
     echo "Registration failed with status code $HTTP_STATUS. Response: $HTTP_BODY"
     exit 1
   fi
-
+  
+  echo "✅ Register New User SUCCESS!"
   echo "--------------------------"
 }
+
+
 
 # Function to log in and get JWT token
 login_user() {

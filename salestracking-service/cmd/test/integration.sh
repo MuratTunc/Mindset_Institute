@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load environment variables from .env file
-ENV_FILE="../build-tools/.env"
+ENV_FILE="../../../build-tools/.env"
 if [ -f "$ENV_FILE" ]; then
   # shellcheck disable=SC2046
   export $(grep -v '^#' "$ENV_FILE" | xargs)
