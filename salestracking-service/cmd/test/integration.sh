@@ -34,49 +34,77 @@ SALENAME="TestSale123"
 NOTE="This is a test note for the sale record."
 
 UPDATED_NOTE="This is the completely new note."
-IN_COMMUNICATION=true
-DEAL=true
-
+IN_COMMUNICATION="true"
+DEAL="true"
 
 health_check() {
-  echo "<------HEALTH CHECK------>"
-  echo "Checking service health at: $HEALTH_CHECK_URL"
+  echo "===>TEST END POINT--->HEALTH CHECK"
+  echo
+  echo "REQUEST URL: $HEALTH_CHECK_URL"
 
-  RESPONSE=$(curl -s -X GET "$HEALTH_CHECK_URL")
+  # Define the HTTP request type
+  REQUEST_TYPE="GET"
 
-  if [[ -z "$RESPONSE" ]]; then
-    echo "❌ Error: No response from service!"
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$HEALTH_CHECK_URL\""
+
+  # Send the request and capture the response
+  HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" -X $REQUEST_TYPE "$HEALTH_CHECK_URL")
+
+  # Extract response body and HTTP status code
+  HTTP_BODY=$(echo "$HEALTH_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$HEALTH_RESPONSE" | tail -n1)
+
+  echo "Health Check Response Body: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  if [ "$HTTP_STATUS" -eq 200 ]; then
+    echo "Service is healthy!"
+  else
+    echo "❌ Health check failed with status code $HTTP_STATUS. Response: $HTTP_BODY"
     exit 1
   fi
 
-  echo "✅ Health Check Response: $RESPONSE"
-  echo "--------------------------"
+  echo "✅ Health Check successfully"
+  echo
 }
-
 
 # Function to insert a new sale record
 insert_sale() {
-  echo "--------------------------"
-  echo "Test: INSERT NEW SALE RECORD"
-  echo "--------------------------"
-  echo "URL: $INSERT_SALE_URL"
+  echo "===>TEST END POINT--->INSERT NEW SALE RECORD"
+  echo
+  echo "REQUEST URL: $INSERT_SALE_URL"
 
-  # Send POST request to insert a new sale record
-  INSERT_SALE_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$INSERT_SALE_URL" -H "Content-Type: application/json" -d '{
+  # Define the HTTP request type
+  REQUEST_TYPE="POST"
+
+  # Define request payload
+  JSON_BODY='{
     "salename": "'"$SALENAME"'",
     "note": "'"$NOTE"'"
-  }')
+  }'
+
+  # Print request details
+  echo "REQUEST_TYPE: $REQUEST_TYPE"
+  echo "JSON_BODY: $JSON_BODY"
+
+  # Echo the curl command
+  echo "Curl Command: curl -X $REQUEST_TYPE \"$INSERT_SALE_URL\" -H \"Content-Type: application/json\" -d '$JSON_BODY'"
+
+  # Send POST request to insert a new sale record
+  INSERT_SALE_RESPONSE=$(curl -s -w "\n%{http_code}" -X "$REQUEST_TYPE" "$INSERT_SALE_URL" -H "Content-Type: application/json" -d "$JSON_BODY")
 
   # Extract response body and HTTP status code
   HTTP_BODY=$(echo "$INSERT_SALE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$INSERT_SALE_RESPONSE" | tail -n1)
 
-  echo "Insert sale response: $HTTP_BODY"
+  echo "Insert sale response body: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   # Check response status
   if [ "$HTTP_STATUS" -eq 200 ]; then
-    echo "✅ Sale record inserted successfully!"
+    echo "Sale record inserted successfully!"
   elif [ "$HTTP_STATUS" -eq 409 ]; then
     echo "⚠️ Sale with this name already exists."
   else
@@ -84,56 +112,87 @@ insert_sale() {
     exit 1
   fi
 
-  echo "--------------------------"
+  echo "✅ INSERT NEW SALE RECORD successfully"
+  echo
 }
 
-# Function to update InCommunication field of a sale
 
+# Function to update the in_communication field for a sale record
 update_incommunication() {
-  echo "Test: UPDATE INCOMMUNICATION FIELD"
-  echo "--------------------------"
+
+  echo "===>TEST END POINT--->UPDATE INCOMMUNICATION FIELD"
+  echo
   echo "Salename: $SALENAME"
   echo "InCommunication: $IN_COMMUNICATION"
   echo "Note: $UPDATED_NOTE"
   echo "URL: $UPDATE_INCOMMUNICATION_URL"
 
-  # Send PUT request with the proper fields, including the note
-  UPDATE_RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT "$UPDATE_INCOMMUNICATION_URL" -H "Content-Type: application/json" -d '{
-    "salename": "'"$SALENAME"'",
-    "in_communication": '$IN_COMMUNICATION',
-    "note": "'"$UPDATED_NOTE"'"
-  }')
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
 
+  # Define the JSON_BODY
+  JSON_BODY=$(jq -n \
+    --arg salename "$SALENAME" \
+    --argjson in_communication "$IN_COMMUNICATION" \
+    --arg note "$UPDATED_NOTE" \
+    '{salename: $salename, in_communication: $in_communication, note: $note}')
+
+  # Echo the request details
+  echo "REQUEST_TYPE: $REQUEST_TYPE"
+  echo "JSON Payload: $JSON_BODY"
+
+  # Echo the curl command
+  echo "Curl Command: curl -X $REQUEST_TYPE \"$UPDATE_INCOMMUNICATION_URL\" -H \"Content-Type: application/json\" -d \"$JSON_BODY\""
+
+  # Send PUT request with the proper fields, including the note
+  UPDATE_RESPONSE=$(curl -s -w "\n%{http_code}" -X "$REQUEST_TYPE" "$UPDATE_INCOMMUNICATION_URL" -H "Content-Type: application/json" -d "$JSON_BODY")
+
+  # Extract response body and HTTP status code
   HTTP_BODY=$(echo "$UPDATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$UPDATE_RESPONSE" | tail -n1)
 
   echo "Update response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
+  # Check the response status
   if [ "$HTTP_STATUS" -eq 200 ]; then
     echo "Sale record updated successfully!"
   else
-    echo "Error: Failed to update sale record. Status code: $HTTP_STATUS"
+    echo "❌ Error: Failed to update sale record. Status code: $HTTP_STATUS"
     exit 1
   fi
 
-  echo "--------------------------"
+  echo "✅ UPDATE INCOMMUNICATION successfully"
+  echo
 }
 
 
 # Function to update Deal field
 update_deal() {
-  echo "Test: UPDATE DEAL FIELD"
-  echo "-------------------------"
+  echo "===>TEST END POINT--->UPDATE DEAL FIELD"
+  echo
   echo "Salename: $SALENAME"
   echo "Deal: $DEAL"
   echo "Note: $UPDATED_NOTE"
   echo "URL: $UPDATE_DEAL_URL"
 
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+
+  # Echo the REQUEST_TYPE for clarity
+  echo "REQUEST_TYPE: $REQUEST_TYPE"
+
+  # Echo the curl command for clarity
+  echo "curl -s -w \"%{http_code}\" -X $REQUEST_TYPE \"$UPDATE_DEAL_URL\" -H \"Content-Type: application/json\" -d '{
+    \"salename\": \"$SALENAME\",
+    \"deal\": $DEAL,
+    \"note\": \"$UPDATED_NOTE\"
+  }'"
+
   # Perform the PUT request to update the sale record and capture both status code and response body
-  UPDATE_DEAL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_DEAL_URL" -H "Content-Type: application/json" -d '{
-    "salename": "'$SALENAME'",
-    "deal": '$DEAL',
+  UPDATE_DEAL_RESPONSE=$(curl -s -w "%{http_code}" -X "$REQUEST_TYPE" "$UPDATE_DEAL_URL" -H "Content-Type: application/json" -d '{
+    "salename": "'"$SALENAME"'",
+    "deal": '"$DEAL"',
     "note": "'"$UPDATED_NOTE"'"
   }')
 
@@ -152,20 +211,35 @@ update_deal() {
     exit 1
   fi
 
-  echo "-------------------------"
+  # Success message
+  echo "✅ UPDATE DEAL FIELD successfully"
+  echo
 }
 
 # Function to update the Closed field
 update_closed() {
-  echo "Test: UPDATE CLOSED FIELD"
-  echo "-------------------------"
+ 
+  echo "===>TEST END POINT--->UPDATE CLOSED FIELD"
+  echo
   echo "Salename: $SALENAME"
   echo "Note: $UPDATED_NOTE"
   echo "URL: $UPDATE_CLOSED_URL"
 
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+
+  # Echo the REQUEST_TYPE for clarity
+  echo "REQUEST_TYPE: $REQUEST_TYPE"
+
+  # Echo the curl command for clarity
+  echo "curl -s -w \"%{http_code}\" -X $REQUEST_TYPE \"$UPDATE_CLOSED_URL\" -H \"Content-Type: application/json\" -d '{
+    \"salename\": \"$SALENAME\",
+    \"note\": \"$UPDATED_NOTE\"
+  }'"
+
   # Perform the PUT request to update the sale record and capture both status code and response body
-  UPDATE_CLOSED_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_CLOSED_URL" -H "Content-Type: application/json" -d '{
-    "salename": "'$SALENAME'",
+  UPDATE_CLOSED_RESPONSE=$(curl -s -w "%{http_code}" -X "$REQUEST_TYPE" "$UPDATE_CLOSED_URL" -H "Content-Type: application/json" -d '{
+    "salename": "'"$SALENAME"'",
     "note": "'"$UPDATED_NOTE"'"
   }')
 
@@ -184,31 +258,46 @@ update_closed() {
     exit 1
   fi
 
-  echo "-------------------------"
+  # Success message
+  echo "✅ UPDATE CLOSED FIELD successfully"
+  echo
 }
+
 
 # Function to delete a sale
 delete_sale() {
-  echo "Test: DELETE SALE"
-  echo "--------------------------"
-  echo "SALE NAME=$SALENAME"
-  echo "URL:$DELETE_SALE_URL"
+
+  echo "===>TEST END POINT---> DELETE SALE"
+  echo
+  echo "SALE NAME: $SALENAME"
+  echo "URL: $DELETE_SALE_URL"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="DELETE"
+
+  # Echo the REQUEST_TYPE for clarity
+  echo "REQUEST_TYPE: $REQUEST_TYPE"
+
+  # Echo the curl command for clarity
+  echo "curl -s -w \"%{http_code}\" -X $REQUEST_TYPE \"$DELETE_SALE_URL\" -H \"Content-Type: application/json\" -d '{
+    \"salename\": \"$SALENAME\"
+  }'"
 
   # Perform the DELETE request and capture both status code and response body
-  DELETE_RESPONSE=$(curl -s -w "\n%{http_code}" -X DELETE "$DELETE_SALE_URL" -H "Content-Type: application/json" -d '{
-    "salename": "'$SALENAME'"
+  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X "$REQUEST_TYPE" "$DELETE_SALE_URL" -H "Content-Type: application/json" -d '{
+    "salename": "'"$SALENAME"'"
   }')
 
   # Extract the response body and HTTP status code
-  HTTP_BODY=$(echo "$DELETE_RESPONSE" | sed '$ d')  # Get response body
-  HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1) # Get last line (HTTP status)
+  HTTP_STATUS="${DELETE_RESPONSE: -3}"
+  HTTP_BODY="${DELETE_RESPONSE%???}"
 
   echo "Delete response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   # Check if the HTTP status code is 200
   if [ "$HTTP_STATUS" -eq 200 ]; then
-    echo "✅ Sale deleted successfully."
+    echo "Sale deleted successfully."
   elif [ "$HTTP_STATUS" -eq 404 ]; then
     echo "❌ Sale not found."
   else
@@ -216,8 +305,12 @@ delete_sale() {
     exit 1
   fi
 
-  echo "--------------------------"
+  # Success message
+  echo "✅ DELETE SALE successfully"
+  echo
 }
+
+
 
 show_database_table(){
   
@@ -253,10 +346,8 @@ show_database_table
 update_deal
 show_database_table
 
-
 update_closed
 show_database_table
-
 
 delete_sale
 show_database_table

@@ -559,3 +559,171 @@ HTTP Status Code: 200
 ```
 
 
+
+
+## SALESTRACKING SERVICE API
+
+### TEST END POINT--->HEALTH CHECK
+```bash
+REQUEST URL: http://localhost:8082/health
+REQUEST TYPE: GET
+COMMAND: curl -X GET "http://localhost:8082/health"
+Health Check Response Body: OK
+HTTP Status Code: 200
+Service is healthy!
+✅ Health Check successfully
+```
+
+### TEST END POINT--->INSERT NEW SALE RECORD
+```bash
+REQUEST URL: http://localhost:8082/insert-sale
+REQUEST_TYPE: POST
+JSON_BODY: {
+    "salename": "TestSale123",
+    "note": "This is a test note for the sale record."
+  }
+Curl Command: curl -X POST "http://localhost:8082/insert-sale" -H "Content-Type: application/json" -d '{
+    "salename": "TestSale123",
+    "note": "This is a test note for the sale record."
+  }'
+Insert sale response body: {"message":"Sale record created successfully"}
+HTTP Status Code: 200
+Sale record inserted successfully!
+✅ INSERT NEW SALE RECORD successfully
+
+ id |  salename   | new | in_communication | deal | closed |                   note                   |          created_at           |          updated_at           
+----+-------------+-----+------------------+------+--------+------------------------------------------+-------------------------------+-------------------------------
+  5 | TestSale123 | t   | f                | f    | f      | This is a test note for the sale record. | 2025-02-10 09:49:48.453175+00 | 2025-02-10 09:49:48.453175+00
+(1 row)
+```
+
+### TEST END POINT--->UPDATE INCOMMUNICATION FIELD
+```bash
+Salename: TestSale123
+InCommunication: true
+Note: This is the completely new note.
+URL: http://localhost:8082/update-incommunication
+REQUEST_TYPE: PUT
+JSON Payload: {
+  "salename": "TestSale123",
+  "in_communication": true,
+  "note": "This is the completely new note."
+}
+Curl Command: curl -X PUT "http://localhost:8082/update-incommunication" -H "Content-Type: application/json" -d "{
+  "salename": "TestSale123",
+  "in_communication": true,
+  "note": "This is the completely new note."
+}"
+Update response: {"message":"Sale record updated successfully"}
+HTTP Status Code: 200
+Sale record updated successfully!
+✅ UPDATE INCOMMUNICATION successfully
+
+ id |  salename   | new | in_communication | deal | closed |                   note                   |          created_at           |          updated_at           
+----+-------------+-----+------------------+------+--------+------------------------------------------+-------------------------------+-------------------------------
+  5 | TestSale123 | f   | t                | f    | f      | This is a test note for the sale record.+| 2025-02-10 09:49:48.453175+00 | 2025-02-10 09:49:48.641957+00
+    |             |     |                  |      |        | This is the completely new note.         |                               | 
+(1 row)
+```
+
+### TEST END POINT--->UPDATE INCOMMUNICATION FIELD
+```bash
+Salename: TestSale123
+InCommunication: false
+Note: This is the completely new note.
+URL: http://localhost:8082/update-incommunication
+REQUEST_TYPE: PUT
+JSON Payload: {
+  "salename": "TestSale123",
+  "in_communication": false,
+  "note": "This is the completely new note."
+}
+Curl Command: curl -X PUT "http://localhost:8082/update-incommunication" -H "Content-Type: application/json" -d "{
+  "salename": "TestSale123",
+  "in_communication": false,
+  "note": "This is the completely new note."
+}"
+Update response: {"message":"Sale record updated successfully"}
+HTTP Status Code: 200
+Sale record updated successfully!
+✅ UPDATE INCOMMUNICATION successfully
+
+ id |  salename   | new | in_communication | deal | closed |                   note                   |          created_at           |          updated_at           
+----+-------------+-----+------------------+------+--------+------------------------------------------+-------------------------------+-------------------------------
+  5 | TestSale123 | t   | f                | f    | f      | This is a test note for the sale record.+| 2025-02-10 09:49:48.453175+00 | 2025-02-10 09:49:48.751244+00
+    |             |     |                  |      |        | This is the completely new note.        +|                               | 
+    |             |     |                  |      |        | This is the completely new note.         |                               | 
+(1 row)
+```
+
+### TEST END POINT--->UPDATE DEAL FIELD
+```bash
+Salename: TestSale123
+Deal: true
+Note: This is the completely new note.
+URL: http://localhost:8082/update-deal
+REQUEST_TYPE: PUT
+curl -s -w "%{http_code}" -X PUT "http://localhost:8082/update-deal" -H "Content-Type: application/json" -d '{
+    "salename": "TestSale123",
+    "deal": true,
+    "note": "This is the completely new note."
+  }'
+Update response: {"message":"Sale record updated successfully"}
+
+HTTP Status Code: 200
+Sale record updated successfully!
+✅ UPDATE DEAL FIELD successfully
+
+ id |  salename   | new | in_communication | deal | closed |                   note                   |          created_at           |          updated_at           
+----+-------------+-----+------------------+------+--------+------------------------------------------+-------------------------------+-------------------------------
+  5 | TestSale123 | f   | f                | t    | f      | This is a test note for the sale record.+| 2025-02-10 09:49:48.453175+00 | 2025-02-10 09:49:48.865938+00
+    |             |     |                  |      |        | This is the completely new note.        +|                               | 
+    |             |     |                  |      |        | This is the completely new note.        +|                               | 
+    |             |     |                  |      |        | This is the completely new note.         |                               | 
+(1 row)
+```
+
+### TEST END POINT--->UPDATE CLOSED FIELD
+```bash
+Salename: TestSale123
+Note: This is the completely new note.
+URL: http://localhost:8082/update-closed
+REQUEST_TYPE: PUT
+curl -s -w "%{http_code}" -X PUT "http://localhost:8082/update-closed" -H "Content-Type: application/json" -d '{
+    "salename": "TestSale123",
+    "note": "This is the completely new note."
+  }'
+Update response: {"message":"Sale record closed successfully"}
+
+HTTP Status Code: 200
+Sale record closed successfully!
+✅ UPDATE CLOSED FIELD successfully
+
+ id |  salename   | new | in_communication | deal | closed |                   note                   |          created_at           |          updated_at           
+----+-------------+-----+------------------+------+--------+------------------------------------------+-------------------------------+-------------------------------
+  5 | TestSale123 | f   | f                | f    | t      | This is a test note for the sale record.+| 2025-02-10 09:49:48.453175+00 | 2025-02-10 09:49:48.969303+00
+    |             |     |                  |      |        | This is the completely new note.        +|                               | 
+    |             |     |                  |      |        | This is the completely new note.        +|                               | 
+    |             |     |                  |      |        | This is the completely new note.        +|                               | 
+    |             |     |                  |      |        | This is the completely new note.         |                               | 
+(1 row)
+```
+
+### TEST END POINT---> DELETE SALE
+```bash
+SALE NAME: TestSale123
+URL: http://localhost:8082/delete-sale
+REQUEST_TYPE: DELETE
+curl -s -w "%{http_code}" -X DELETE "http://localhost:8082/delete-sale" -H "Content-Type: application/json" -d '{
+    "salename": "TestSale123"
+  }'
+Delete response: {"message":"Sale deleted successfully","salename":"TestSale123"}
+
+HTTP Status Code: 200
+Sale deleted successfully.
+✅ DELETE SALE successfully
+
+ id | salename | new | in_communication | deal | closed | note | created_at | updated_at 
+----+----------+-----+------------------+------+--------+------+------------+------------
+(0 rows)
+```
