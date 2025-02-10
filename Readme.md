@@ -114,7 +114,7 @@ http://localhost:8080/swagger/index.html
 
 ## USER-SERVICE
 
-### ===>TEST END POINT--->HEALTH CHECK
+### TEST END POINT--->HEALTH CHECK
 ```bash
 REQUEST URL: http://localhost:8080/health
 REQUEST TYPE: GET
@@ -125,7 +125,7 @@ Service is healthy!
 ✅ Health Check successfully
 ```
 
-### ===>TEST END POINT-->REGISTER NEW USER
+### TEST END POINT-->REGISTER NEW USER
 ```bash
 REQUEST URL: http://localhost:8080/register
 REQUEST TYPE: POST
@@ -146,7 +146,7 @@ User registered successfully!
 (1 row)
 ```
 
-### ===>TEST END POINT-->LOGIN USER
+### TEST END POINT-->LOGIN USER
 ```bash
 REQUEST URL: http://localhost:8080/login
 REQUEST TYPE: POST
@@ -168,7 +168,7 @@ HTTP Status Code: 200
 (1 row)
 ```
 
-### ===>TEST END POINT-->DEACTIVATE USER
+### TEST END POINT-->DEACTIVATE USER
 ```bash
 REQUEST URL: http://localhost:8080/deactivate-user
 JSON BODY: {
@@ -188,7 +188,7 @@ HTTP Status Code: 200
 (1 row)
 ```
 
-### ===>TEST END POINT-->ACTIVATE USER
+### TEST END POINT-->ACTIVATE USER
 ```bash
 REQUEST URL: http://localhost:8080/activate-user
 JSON BODY: {
@@ -208,7 +208,7 @@ HTTP Status Code: 200
 (1 row)
 ```
 
-### ===>TEST END POINT-->UPDATE EMAIL ADDRESS
+### TEST END POINT-->UPDATE EMAIL ADDRESS
 ```bash
 REQUEST URL: http://localhost:8080/update-email
 JSON BODY: {
@@ -230,7 +230,7 @@ HTTP Status Code: 200
  12 | testuser | newmail@example.com | $2a$10$xW2C69tOT7SfWvYQe88BS..S57SXG91vHqHX19569esIqZvn5t4XC | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.343587+00
 (1 row)
 ```
-### ===>TEST END POINT-->UPDATE NEW PASSWORD
+### TEST END POINT-->UPDATE NEW PASSWORD
 ```bash
 REQUEST URL: http://localhost:8080/update-password
 JSON BODY: {
@@ -252,7 +252,7 @@ HTTP Status Code: 200
  12 | testuser | newmail@example.com | $2a$10$1cG4hQxKE2eRXmPet05NWuzocy29U0NCEJh.zAf42u3lVKMXTB8iW | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.492229+00
 (1 row)
 ```
-### ===>TEST END POINT-->UPDATE USER ROLE
+### TEST END POINT-->UPDATE USER ROLE
 ```bash
 REQUEST URL: http://localhost:8080/update-role
 JSON BODY: {
@@ -273,7 +273,7 @@ HTTP Status Code: 200
  12 | testuser | newmail@example.com | $2a$10$1cG4hQxKE2eRXmPet05NWuzocy29U0NCEJh.zAf42u3lVKMXTB8iW | MANAGER | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.603123+00
 (1 row)
 ```
-### ===>TEST END POINT-->UPDATE USER
+### TEST END POINT-->UPDATE USER
 ```bash
 REQUEST URL: http://localhost:8080/update-user
 JSON BODY: {
@@ -296,7 +296,7 @@ HTTP Status Code: 200
  12 | testuser | newmail@example.com | $2a$10$1cG4hQxKE2eRXmPet05NWuzocy29U0NCEJh.zAf42u3lVKMXTB8iW | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.702148+00
 (1 row)
 ```
-### ===>TEST END POINT-->DELETE USER
+### TEST END POINT-->DELETE USER
 ```bash
 REQUEST URL: http://localhost:8080/delete-user
 JSON BODY: {
