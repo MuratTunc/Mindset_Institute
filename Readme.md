@@ -1,4 +1,15 @@
+
+
+
 # ✅ Running Containers Check:
+
+In this study, a total of 6 separate services running on Docker were designed. Development was made on Golang language as the Backend Software language due to its speed and efficiency, and on Ubuntu Linux as the operating system. With Bash shell script language and Makefile, services were created automatically from scratch and all API functions were tested automatically.
+
+![alt text](image.png)
+
+
+
+Each micro service has its own postgres database.
 
     Microservices:
     ✅ user-service (Port: 8080)
@@ -9,6 +20,154 @@
     ✅ user-db (Port: 5432)
     ✅ customer-db (Port: 5433)
     ✅ salestracking-db (Port: 5434)
+
+#### Backend SW Structure for all services:
+![alt text](image-1.png)
+
+
+All variables are taken parametrically from the .env file for modularity, reusability, efficiency and easy addition of new services.
+![alt text](image-2.png)
+
+# Explanation of `.env` File
+
+This `.env` file is used to store environment variables that configure various services and database connections for your Golang microservices. Below is a detailed breakdown of each section.
+
+### Golang Config
+GOFULLPATH: Specifies the full path to the Go binary. This is important for your Makefile or other scripts that need to know where Go is installed.
+```bash
+GOFULLPATH=/usr/local/go/bin/go
+```
+
+### User Service Config
+
+USER_SERVICE_PORT=8080
+USER_SERVICE_NAME=USER-SERVICE
+USER_SERVICE_IMAGE_NAME=user-service-img
+USER_SERVICE_CONTAINER_NAME=user-service
+USER_SERVICE_BINARY=userServiceApp
+USER_SERVICE_JWT_SECRET=6$8fjZ2@sjKl#F8tTr1&n!X2ZjzGp#nJ2k2ZoLs45!Vqa5m0F!ztr7@1f#Vjz1j
+
+
+    USER_SERVICE_PORT: Port number for the user service to listen on.
+    USER_SERVICE_NAME: The name of the user service.
+    USER_SERVICE_IMAGE_NAME: The Docker image name for the user service.
+    USER_SERVICE_CONTAINER_NAME: The name of the Docker container for the user service.
+    USER_SERVICE_BINARY: The name of the compiled Go binary for the user service.
+    USER_SERVICE_JWT_SECRET: A secret key used for signing JWT tokens in the user service (important for authentication).
+
+
+### Customer Service Config
+
+CUSTOMER_SERVICE_PORT=8081
+CUSTOMER_SERVICE_NAME=CUSTOMER-SERVICE
+CUSTOMER_SERVICE_IMAGE_NAME=customer-service-img
+CUSTOMER_SERVICE_CONTAINER_NAME=customer-service
+CUSTOMER_SERVICE_BINARY=customerServiceApp
+
+    CUSTOMER_SERVICE_PORT: Port number for the customer service.
+    CUSTOMER_SERVICE_NAME: The name of the customer service.
+    CUSTOMER_SERVICE_IMAGE_NAME: Docker image name for the customer service.
+    CUSTOMER_SERVICE_CONTAINER_NAME: Docker container name for the customer service.
+    CUSTOMER_SERVICE_BINARY: Name of the compiled Go binary for the customer service.
+
+### Sales Tracking Service Config
+
+SALESTRACKING_SERVICE_PORT=8082
+SALESTRACKING_SERVICE_NAME=SALESTRACKING-SERVICE
+SALESTRACKING_SERVICE_IMAGE_NAME=salestracking-service-img
+SALESTRACKING_SERVICE_CONTAINER_NAME=salestracking-service
+SALESTRACKING_SERVICE_BINARY=salestrackingServiceApp
+
+    SALESTRACKING_SERVICE_PORT: Port number for the sales tracking service.
+    SALESTRACKING_SERVICE_NAME: Name of the sales tracking service.
+    SALESTRACKING_SERVICE_IMAGE_NAME: Docker image name for the sales tracking service.
+    SALESTRACKING_SERVICE_CONTAINER_NAME: Docker container name for the sales tracking service.
+    SALESTRACKING_SERVICE_BINARY: Name of the compiled Go binary for the sales tracking service.
+
+### User Service Database Config
+
+USER_POSTGRES_DB_HOST=user-db
+USER_POSTGRES_DB_PORT=5432
+USER_POSTGRES_DB_USER=user
+USER_POSTGRES_DB_PASSWORD=user_password
+USER_POSTGRES_DB_NAME=user_db
+USER_POSTGRES_DB_CONTAINER_NAME=user-db
+
+    USER_POSTGRES_DB_HOST: The hostname or IP address of the PostgreSQL database for the user service.
+    USER_POSTGRES_DB_PORT: The port number on which the PostgreSQL service is running for the user service.
+    USER_POSTGRES_DB_USER: Username for the user service's PostgreSQL database.
+    USER_POSTGRES_DB_PASSWORD: Password for the user service's PostgreSQL database.
+    USER_POSTGRES_DB_NAME: The name of the database for the user service.
+    USER_POSTGRES_DB_CONTAINER_NAME: Docker container name for the user service's PostgreSQL database.
+
+### Customer Service Database Config
+
+CUSTOMER_POSTGRES_DB_HOST=customer-db
+CUSTOMER_POSTGRES_DB_PORT=5433
+CUSTOMER_POSTGRES_DB_USER=customer
+CUSTOMER_POSTGRES_DB_PASSWORD=customer_password
+CUSTOMER_POSTGRES_DB_NAME=customer_db
+CUSTOMER_POSTGRES_DB_CONTAINER_NAME=customer-db
+
+    This section follows the same structure as the User Service Database Config, but it's for the customer service database.
+
+### Sales Tracking Service Database Config
+
+SALESTRACKING_POSTGRES_DB_HOST=salestracking-db
+SALESTRACKING_POSTGRES_DB_PORT=5434
+SALESTRACKING_POSTGRES_DB_USER=salestracking
+SALESTRACKING_POSTGRES_DB_PASSWORD=salestracking_password
+SALESTRACKING_POSTGRES_DB_NAME=salestracking_db
+SALESTRACKING_POSTGRES_DB_CONTAINER_NAME=salestracking-db
+
+    This section follows the same structure as the previous two, but it's for the sales tracking service database.
+
+_Purpose of This .env File_
+
+This .env file:
+
+    Provides a centralized location for storing environment-specific configuration values for your services.
+    Helps you configure service ports, Docker container names, binary names, database connections, and other sensitive data like JWT secrets.
+
+
+### Makefile Purpose:
+Summary:
+
+This Makefile is a comprehensive tool for managing the build, testing, and cleanup of your services. It includes:
+
+    Build targets for user, customer, and sales tracking services.
+    Integration tests that can be customized with a wait time parameter.
+    Docker container management (starting, stopping, removing).
+    Integration test execution after the Docker containers have been successfully built and started.
+
+It uses make to automate service building, waiting, and testing, with flexibility to adjust wait times between steps.
+
+### Docker-Compose Yaml file Purpose:
+Purpose of This YAML File:
+
+    Defines services and dependencies: It sets up three services (user-service, customer-service, salestracking-service), each of which depends on its corresponding PostgreSQL database (user-db, customer-db, salestracking-db).
+
+    Docker Image Build and Container Setup:
+        Each service (user-service, customer-service, salestracking-service) is built from a specified directory and Dockerfile.
+        The containers for each service are set to restart automatically (restart: always).
+        Each service is bound to its respective database container, ensuring that the service waits for the database to be healthy before starting (depends_on and condition: service_healthy).
+
+    Environment Variables:
+        Environment variables are loaded from a .env file for each service. This allows sensitive information like database credentials and service ports to be easily configured.
+
+    Health Checks:
+        Health checks are configured for each database to ensure that PostgreSQL is ready and accessible before starting the related services.
+
+    Persistent Storage:
+        Volumes (user_db_data, customer_db_data, and salestracking_db_data) are defined for each database to store their data persistently.
+
+How It Works:
+
+    The services are built and run in Docker containers.
+    The containers for the user, customer, and sales tracking services depend on their respective PostgreSQL database containers.
+    Health checks ensure that the databases are ready before the services can start, which helps in coordinating the startup sequence.
+    Volumes are used for persisting database data to ensure data durability across container restarts.
+
 
 # API DOCUMENTATION
 
