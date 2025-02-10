@@ -112,11 +112,20 @@ logs:
 help:
 	@grep -E '^##' $(MAKEFILE_LIST) | sed -e 's/## //'
 
-	## integration_test: Runs integration tests for all services
+## integration_test: Runs integration tests for all services
 integration_test:
 	echo "🔍 Running integration tests..."
 	cd ../integration_tests && \
+	echo "🚀 Running integration_user_service.sh..." && \
 	./integration_user_service.sh && \
+	echo "⏳ Waiting before running integration_customer_service.sh..." && \
+	$(MAKE) wait_general && \
+	echo "🚀 Running integration_customer_service.sh..." && \
 	./integration_customer_service.sh && \
-	./integration_salestracking_service.sh
+	echo "⏳ Waiting before running integration_salestracking_service.sh..." && \
+	$(MAKE) wait_general && \
+	echo "🚀 Running integration_salestracking_service.sh..." && \
+	./integration_salestracking_service.sh && \
+	echo "⏳ Waiting before finishing integration tests..." && \
+	$(MAKE) wait_general
 	echo "✅ Integration tests completed successfully!"

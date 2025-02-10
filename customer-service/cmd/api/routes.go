@@ -15,39 +15,44 @@ func (app *Config) routes() http.Handler {
 	// CORS Middleware
 	mux.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{
-			"http://localhost:3000", // Allow requests from localhost our React frontend web-app
+			"http://localhost:3000", // Allow requests from localhost, where our React frontend web app is running
 		},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},                 // Allow these HTTP methods for cross-origin requests
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"}, // Allowed headers in requests
+		ExposedHeaders:   []string{"Link"},                                                    // Expose headers to the client
+		AllowCredentials: true,                                                                // Allow cookies to be sent with cross-origin requests
+		MaxAge:           300,                                                                 // Cache pre-flight requests for 5 minutes
 	}))
 
 	// Middleware
-	mux.Use(middleware.Heartbeat("/ping")) // Basic health check
-	mux.Use(middleware.Recoverer)          // Recover from panics gracefully
-	mux.Use(middleware.Logger)             // Log all requests
+	mux.Use(middleware.Heartbeat("/ping")) // Basic health check endpoint (ping route)
+	mux.Use(middleware.Recoverer)          // Automatically recover from panics and return a 500 status code
+	mux.Use(middleware.Logger)             // Log all HTTP requests
 
-	mux.Post("/register", app.CreateCustomerHandler)        // Handle customer registration
-	mux.Post("/login", app.LoginCustomerHandler)            // Handle customer login
-	mux.Post("/update-password", app.UpdatePasswordHandler) // Password update (requires authentication)
+	// POST routes
+	mux.Post("/register", app.CreateCustomerHandler)        // Route to handle customer registration
+	mux.Post("/login", app.LoginCustomerHandler)            // Route to handle customer login
+	mux.Post("/update-password", app.UpdatePasswordHandler) // Route to update customer password (authentication required)
 
-	mux.Get("/health", app.HealthCheckHandler) // Custom health check endpoint
-	mux.Get("/get_all_customer", app.GetAllCustomerHandler)
-	mux.Get("/order-customers", app.OrderCustomersHandler)
-	mux.Get("/activated-customers", app.GetActivatedCustomerNamesHandler)
-	mux.Get("/logged-in-customers", app.GetLoggedInCustomersHandler)
-	mux.Get("/customer", app.GetCustomerHandler) // Retrieve a customer by ID
+	// GET routes
+	mux.Get("/health", app.HealthCheckHandler)                            // Custom health check endpoint to check if the service is up
+	mux.Get("/get_all_customer", app.GetAllCustomerHandler)               // Route to get all customers
+	mux.Get("/order-customers", app.OrderCustomersHandler)                // Route to order customers based on some criteria
+	mux.Get("/activated-customers", app.GetActivatedCustomerNamesHandler) // Route to get activated customers
+	mux.Get("/logged-in-customers", app.GetLoggedInCustomersHandler)      // Route to get logged-in customers
+	mux.Get("/customer", app.GetCustomerHandler)                          // Route to get a specific customer by some criteria (e.g., ID)
 
-	mux.Put("/update-customer", app.UpdateCustomerHandler)         // Update customer by ID
-	mux.Put("/deactivate-customer", app.DeactivateCustomerHandler) // Deactivate customer by ID
-	mux.Put("/activate-customer", app.ActivateCustomerHandler)     // Activate customer by ID
-	mux.Put("/update-email", app.UpdateEmailHandler)               // Update customer's email address
-	mux.Put("/update-note", app.UpdateNoteHandler)
-	mux.Put("/insert-note", app.InsertNoteHandler) // Route to insert new note into an existing one
+	// PUT routes (used for updating data)
+	mux.Put("/update-customer", app.UpdateCustomerHandler)         // Route to update customer information
+	mux.Put("/deactivate-customer", app.DeactivateCustomerHandler) // Route to deactivate a customer account
+	mux.Put("/activate-customer", app.ActivateCustomerHandler)     // Route to activate a customer account
+	mux.Put("/update-email", app.UpdateEmailHandler)               // Route to update customer email
+	mux.Put("/update-note", app.UpdateNoteHandler)                 // Route to update an existing customer note
+	mux.Put("/insert-note", app.InsertNoteHandler)                 // Route to insert a new note into an existing customer note
 
-	mux.Delete("/delete-customer", app.DeleteCustomerHandler) // Delete customer
+	// DELETE routes
+	mux.Delete("/delete-customer", app.DeleteCustomerHandler) // Route to delete a customer
 
+	// Return the configured router to be used by the server
 	return mux
 }

@@ -169,6 +169,75 @@ How It Works:
     Volumes are used for persisting database data to ensure data durability across container restarts.
 
 
+# BACK-END-SERVICES
+
+### USER-SERVIS
+
+User service is the service that communicates with the database where user admin information is kept and provides management. It starts the web service with port __8080__.
+
+### CUSTOMER-SERVIS
+
+It is the service that listening to port __8081__ and transfers customer information that will make the purchase to the database and manages it.
+
+### SALESTRACKING-SERVIS
+
+It is a service that listens to __8082__ and enables the transfer, updating and management of purchased product information and product status information during sales processes to the database.
+
+
+# DATABASE TABLE FIELDS
+
+### USER-DB
+## User Model Breakdown
+
+| Field        | Type        | GORM Tag                     | Description |
+|-------------|------------|-----------------------------|-------------|
+| `ID`        | `uint`      | `gorm:"primaryKey"`         | Auto-incremented primary key |
+| `Username`  | `string`    | `gorm:"unique;not null"`    | Must be unique and cannot be null |
+| `MailAddress` | `string`  | `gorm:"unique;not null"`    | Must be unique and cannot be null |
+| `Password`  | `string`    | `gorm:"not null"`           | Cannot be null (hashed in DB) |
+| `Role`      | `string`    | `gorm:"not null"`           | Can be `"Admin"` or `"Sales Representative"` |
+| `Activated` | `bool`      | `gorm:"default:false"`      | Defaults to `false` (user is inactive by default) |
+| `LoginStatus` | `bool`    | `gorm:"default:false"`      | Tracks whether the user is logged in |
+| `CreatedAt` | `time.Time` | `gorm:"autoCreateTime"`     | Automatically set when the user is created |
+| `UpdatedAt` | `time.Time` | `gorm:"autoUpdateTime"`     | Automatically updates when the user data is modified |
+
+
+
+## CUSTOMER-DB
+
+## Customer Model Breakdown
+
+| Field          | Type        | GORM Tag                     | Description |
+|--------------|------------|-----------------------------|-------------|
+| `ID`         | `uint`      | `gorm:"primaryKey"`         | Auto-incremented primary key |
+| `Customername` | `string`  | `gorm:"unique;not null"`    | Must be unique and cannot be null |
+| `MailAddress`  | `string`  | `gorm:"unique;not null"`    | Must be unique and cannot be null |
+| `Password`    | `string`   | `gorm:"not null"`           | Cannot be null (hashed in DB) |
+| `Activated`   | `bool`     | `gorm:"default:false"`      | Defaults to `false` (customer is inactive by default) |
+| `LoginStatus` | `bool`     | `gorm:"default:false"`      | Tracks whether the customer is logged in |
+| `Note`        | `string`   | `gorm:"type:text"`          | Stores additional text information |
+| `CreatedAt`   | `time.Time` | `gorm:"autoCreateTime"`     | Automatically set when the customer is created |
+| `UpdatedAt`   | `time.Time` | `gorm:"autoUpdateTime"`     | Automatically updates when the customer data is modified |
+
+## SALESTRACKING-DB
+
+## Sale Model Breakdown
+
+| Field            | Type        | GORM Tag                                | Description |
+|----------------|------------|----------------------------------------|-------------|
+| `ID`          | `uint`      | `gorm:"primaryKey"`                    | Auto-incremented primary key |
+| `Salename`    | `string`    | `gorm:"type:varchar(255);uniqueIndex;not null"` | Unique sale name (max 255 chars), cannot be null |
+| `New`         | `bool`      | `gorm:"default:false"`                  | Indicates if the sale is new |
+| `InCommunication` | `bool`  | `gorm:"default:false"`                  | Tracks if the sale is in communication phase |
+| `Deal`        | `bool`      | `gorm:"default:false"`                  | Indicates if a deal has been made |
+| `Closed`      | `bool`      | `gorm:"default:false"`                  | Indicates if the sale is closed |
+| `Note`        | `string`    | `gorm:"type:text"`                      | Stores additional text information about the sale |
+| `CreatedAt`   | `time.Time` | `gorm:"autoCreateTime"`                 | Automatically set when the sale is created |
+| `UpdatedAt`   | `time.Time` | `gorm:"autoUpdateTime"`                 | Automatically updates when the sale data is modified |
+
+
+
+
 # API DOCUMENTATION
 
 ## USER-SERVICE API
