@@ -311,7 +311,7 @@ How It Works:
 #### Backend SW Structure for all services:
 ![alt text](image-1.png)
 
-### USER-SERVIS
+### USER-SERVICE
 
 User service is the service that communicates with the database where user admin information is kept and provides management. It starts the web service with port __8080__.
 
@@ -341,7 +341,7 @@ User service is the service that communicates with the database where user admin
 
 
 
-### CUSTOMER-SERVIS
+### CUSTOMER-SERVICE
 
 It is the service that listening to port __8081__ and transfers customer information that will make the purchase to the database and manages it.
 
@@ -382,7 +382,7 @@ It is the service that listening to port __8081__ and transfers customer informa
 
 
 
-### SALESTRACKING-SERVIS
+### SALESTRACKING-SERVICE
 
 It is a service that listens to __8082__ and enables the transfer, updating and management of purchased product information and product status information during sales processes to the database.
 
