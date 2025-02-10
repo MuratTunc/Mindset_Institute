@@ -4,7 +4,7 @@
 In this study, a total of 6 separate services running on Docker were designed. Development was made on Golang language as the Backend Software language due to its speed and efficiency, and on Ubuntu Linux as the operating system. With Bash shell script language and Makefile, services were created automatically from scratch and all API functions were tested automatically.
 
 
-## Runnig Project on your system:
+## Getting the project running on your PC
 
 Download the project git repository to your local PC. Run the following commands in order.
 
@@ -237,6 +237,7 @@ e55ccbd1c2f3   customer-service-img        "/app/customerServic…"   6 seconds 
 ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
 
 ```
+
 ## Running Containers
 
 ![alt text](image.png)
@@ -1090,6 +1091,17 @@ Sale deleted successfully.
 ----+----------+-----+------------------+------+--------+------+------------+------------
 (0 rows)
 ```
+
+## Getting integration tests.
+```bash
+cd Mindset_Institute/integration_tests/
+./integration_user_service.sh
+./integration_customer_service.sh
+./integration_salestracking_service.sh 
+```
+
+
+
 ## Docker services logs
 
 docker logs user-service
@@ -1099,14 +1111,8 @@ docker logs salestracking-service
 ## Generating sample jwt-secret key
 openssl rand -base64 32
 
-## user-db
+## db analze from container
 sudo docker exec -it <container id> psql -U user -d user_db
-
-
-## see ttable
-sudo docker exec -it e25ff201e765 bash
-psql -U user -d user_db
-SELECT * FROM users;
 
 
 ## All Databases Can Use 5432 Internally
