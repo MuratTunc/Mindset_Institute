@@ -113,9 +113,9 @@ http://localhost:8080/swagger/index.html
 ### API DOCUMENTATION
 
 ## USER-SERVICE
-```bash
-===>TEST END POINT--->HEALTH CHECK
 
+### ===>TEST END POINT--->HEALTH CHECK
+```bash
 REQUEST URL: http://localhost:8080/health
 REQUEST TYPE: GET
 COMMAND: curl -X GET "http://localhost:8080/health"
@@ -123,9 +123,10 @@ Health Check Response Body: OK
 HTTP Status Code: 200
 Service is healthy!
 ✅ Health Check successfully
+```
 
-===>TEST END POINT-->REGISTER NEW USER
-
+### ===>TEST END POINT-->REGISTER NEW USER
+```bash
 REQUEST URL: http://localhost:8080/register
 REQUEST TYPE: POST
 COMMAND: curl -X POST "http://localhost:8080/register" -H "Content-Type: application/json" -d '{
@@ -143,9 +144,10 @@ User registered successfully!
 ----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | testuser@example.com | $2a$10$xW2C69tOT7SfWvYQe88BS..S57SXG91vHqHX19569esIqZvn5t4XC | Admin | t         | f            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:16.791345+00
 (1 row)
+```
 
-===>TEST END POINT-->LOGIN USER
-
+### ===>TEST END POINT-->LOGIN USER
+```bash
 REQUEST URL: http://localhost:8080/login
 REQUEST TYPE: POST
 COMMAND: curl -X POST "http://localhost:8080/login" -H "Content-Type: application/json" -d '{
@@ -164,9 +166,10 @@ HTTP Status Code: 200
 ----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | testuser@example.com | $2a$10$xW2C69tOT7SfWvYQe88BS..S57SXG91vHqHX19569esIqZvn5t4XC | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:16.951427+00
 (1 row)
+```
 
-===>TEST END POINT-->DEACTIVATE USER
-
+### ===>TEST END POINT-->DEACTIVATE USER
+```bash
 REQUEST URL: http://localhost:8080/deactivate-user
 JSON BODY: {
   "username": "testuser"
@@ -183,9 +186,10 @@ HTTP Status Code: 200
 ----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | testuser@example.com | $2a$10$xW2C69tOT7SfWvYQe88BS..S57SXG91vHqHX19569esIqZvn5t4XC | Admin | f         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.068763+00
 (1 row)
+```
 
-===>TEST END POINT-->ACTIVATE USER
-
+### ===>TEST END POINT-->ACTIVATE USER
+```bash
 REQUEST URL: http://localhost:8080/activate-user
 JSON BODY: {
   "username": "testuser"
@@ -202,9 +206,10 @@ HTTP Status Code: 200
 ----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | testuser@example.com | $2a$10$xW2C69tOT7SfWvYQe88BS..S57SXG91vHqHX19569esIqZvn5t4XC | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.245721+00
 (1 row)
+```
 
-===>TEST END POINT-->UPDATE EMAIL ADDRESS
-
+### ===>TEST END POINT-->UPDATE EMAIL ADDRESS
+```bash
 REQUEST URL: http://localhost:8080/update-email
 JSON BODY: {
   "username": "testuser",
@@ -224,9 +229,9 @@ HTTP Status Code: 200
 ----+----------+---------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | newmail@example.com | $2a$10$xW2C69tOT7SfWvYQe88BS..S57SXG91vHqHX19569esIqZvn5t4XC | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.343587+00
 (1 row)
-
-===>TEST END POINT-->UPDATE NEW PASSWORD
-
+```
+### ===>TEST END POINT-->UPDATE NEW PASSWORD
+```bash
 REQUEST URL: http://localhost:8080/update-password
 JSON BODY: {
   "username": "testuser",
@@ -246,9 +251,9 @@ HTTP Status Code: 200
 ----+----------+---------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | newmail@example.com | $2a$10$1cG4hQxKE2eRXmPet05NWuzocy29U0NCEJh.zAf42u3lVKMXTB8iW | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.492229+00
 (1 row)
-
-===>TEST END POINT-->UPDATE USER ROLE
-
+```
+### ===>TEST END POINT-->UPDATE USER ROLE
+```bash
 REQUEST URL: http://localhost:8080/update-role
 JSON BODY: {
   "username": "testuser",
@@ -267,9 +272,9 @@ HTTP Status Code: 200
 ----+----------+---------------------+--------------------------------------------------------------+---------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | newmail@example.com | $2a$10$1cG4hQxKE2eRXmPet05NWuzocy29U0NCEJh.zAf42u3lVKMXTB8iW | MANAGER | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.603123+00
 (1 row)
-
-===>TEST END POINT-->UPDATE USER
-
+```
+### ===>TEST END POINT-->UPDATE USER
+```bash
 REQUEST URL: http://localhost:8080/update-user
 JSON BODY: {
   "username": "testuser",
@@ -290,9 +295,9 @@ HTTP Status Code: 200
 ----+----------+---------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
  12 | testuser | newmail@example.com | $2a$10$1cG4hQxKE2eRXmPet05NWuzocy29U0NCEJh.zAf42u3lVKMXTB8iW | Admin | t         | t            | 2025-02-10 07:16:16.791345+00 | 2025-02-10 07:16:17.702148+00
 (1 row)
-
-===>TEST END POINT-->DELETE USER
-
+```
+### ===>TEST END POINT-->DELETE USER
+```bash
 REQUEST URL: http://localhost:8080/delete-user
 JSON BODY: {
   "username": "testuser"
@@ -308,7 +313,6 @@ HTTP Status Code: 200
  id | username | mail_address | password | role | activated | login_status | created_at | updated_at 
 ----+----------+--------------+----------+------+-----------+--------------+------------+------------
 (0 rows)
-
 ```
 
 ALL TESTS ARE DONE!!!
