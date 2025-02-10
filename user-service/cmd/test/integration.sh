@@ -49,7 +49,8 @@ DELETE_USER_URL="$BASE_URL/delete-user"
 
 
 health_check() {
-  echo "TEST END POINT--->HEALTH CHECK"
+  echo "===>TEST END POINT--->HEALTH CHECK"
+  echo
   echo "REQUEST URL: $HEALTH_CHECK_URL"
 
   # Define the HTTP request type
@@ -85,7 +86,7 @@ health_check() {
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
-  echo "TEST END POINT-->REGISTER NEW USER"
+  echo "===>TEST END POINT-->REGISTER NEW USER"
   echo
   echo "REQUEST URL: $REGISTER_URL"
   
@@ -132,7 +133,7 @@ register_user() {
 
 # Function to log in and get JWT token
 login_user() {
-  echo "TEST END POINT-->LOGIN USER"
+  echo "===>TEST END POINT-->LOGIN USER"
   echo
   echo "REQUEST URL: $LOGIN_URL"
   
@@ -177,7 +178,7 @@ login_user() {
 
 # Function to get user details
 get_user_details() {
-  echo "TEST END POINT-->GET USER DETAILS"
+  echo "===>TEST END POINT-->GET USER DETAILS"
   echo
   echo "REQUEST URL: $USER_URL?username=$USERNAME"
   
@@ -209,7 +210,7 @@ get_user_details() {
 
 # Function to deactivate user
 deactivate_user() {
-  echo "TEST END POINT-->DEACTIVATE USER"
+  echo "===>TEST END POINT-->DEACTIVATE USER"
   echo
   echo "REQUEST URL: $DEACTIVATE_USER_URL"
   
@@ -252,7 +253,7 @@ deactivate_user() {
 
 # Function to activate user
 activate_user() {
-  echo "TEST END POINT-->ACTIVATE USER"
+  echo "===>TEST END POINT-->ACTIVATE USER"
   echo
   echo "REQUEST URL: $ACTIVATE_USER_URL"
   
@@ -297,7 +298,7 @@ activate_user() {
 
 # Function to update user details
 update_user() {
-  echo "TEST END POINT-->UPDATE USER"
+  echo "===>TEST END POINT-->UPDATE USER"
   echo
   echo "REQUEST URL: $UPDATE_USER_URL"
   
@@ -348,7 +349,7 @@ update_user() {
 
 # Function to update user password
 update_password() {
-  echo "TEST END POINT-->UPDATE NEW PASSWORD"
+  echo "===>TEST END POINT-->UPDATE NEW PASSWORD"
   echo
   echo "REQUEST URL: $UPDATE_PASSWORD_URL"
   
@@ -397,7 +398,7 @@ update_password() {
 
 # Function to update user email address
 update_email() {
-  echo "TEST END POINT-->UPDATE EMAIL ADDRESS"
+  echo "===>TEST END POINT-->UPDATE EMAIL ADDRESS"
   echo
   echo "REQUEST URL: $UPDATE_EMAIL_URL"
 
@@ -446,7 +447,7 @@ update_email() {
 
 # Function to update user role
 update_role() {
-  echo "TEST END POINT-->UPDATE USER ROLE"
+  echo "===>TEST END POINT-->UPDATE USER ROLE"
   echo
   echo "REQUEST URL: $UPDATE_ROLE_URL"
 
@@ -496,7 +497,7 @@ update_role() {
 
 # Function to delete user by username
 delete_user() {
-  echo "TEST END POINT-->DELETE USER"
+  echo "===>TEST END POINT-->DELETE USER"
   echo
   echo "REQUEST URL: $DELETE_USER_URL"
 
