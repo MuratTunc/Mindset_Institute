@@ -1,12 +1,11 @@
 
-
-
-# ✅ Running Containers Check:
+# Mindset Institute Case Study
 
 In this study, a total of 6 separate services running on Docker were designed. Development was made on Golang language as the Backend Software language due to its speed and efficiency, and on Ubuntu Linux as the operating system. With Bash shell script language and Makefile, services were created automatically from scratch and all API functions were tested automatically.
 
-![alt text](image.png)
+## Running Containers
 
+![alt text](image.png)
 
 
 Each micro service has its own postgres database.
@@ -21,8 +20,7 @@ Each micro service has its own postgres database.
     ✅ customer-db (Port: 5433)
     ✅ salestracking-db (Port: 5434)
 
-#### Backend SW Structure for all services:
-![alt text](image-1.png)
+
 
 
 All variables are taken parametrically from the .env file for modularity, reusability, efficiency and easy addition of new services.
@@ -31,103 +29,8 @@ All variables are taken parametrically from the .env file for modularity, reusab
 # Explanation of `.env` File
 
 This `.env` file is used to store environment variables that configure various services and database connections for your Golang microservices. Below is a detailed breakdown of each section.
-
-### Golang Config
-GOFULLPATH: Specifies the full path to the Go binary. This is important for your Makefile or other scripts that need to know where Go is installed.
-```bash
-GOFULLPATH=/usr/local/go/bin/go
-```
-
-### User Service Config
-
-USER_SERVICE_PORT=8080
-USER_SERVICE_NAME=USER-SERVICE
-USER_SERVICE_IMAGE_NAME=user-service-img
-USER_SERVICE_CONTAINER_NAME=user-service
-USER_SERVICE_BINARY=userServiceApp
-USER_SERVICE_JWT_SECRET=6$8fjZ2@sjKl#F8tTr1&n!X2ZjzGp#nJ2k2ZoLs45!Vqa5m0F!ztr7@1f#Vjz1j
-
-
-    USER_SERVICE_PORT: Port number for the user service to listen on.
-    USER_SERVICE_NAME: The name of the user service.
-    USER_SERVICE_IMAGE_NAME: The Docker image name for the user service.
-    USER_SERVICE_CONTAINER_NAME: The name of the Docker container for the user service.
-    USER_SERVICE_BINARY: The name of the compiled Go binary for the user service.
-    USER_SERVICE_JWT_SECRET: A secret key used for signing JWT tokens in the user service (important for authentication).
-
-
-### Customer Service Config
-
-CUSTOMER_SERVICE_PORT=8081
-CUSTOMER_SERVICE_NAME=CUSTOMER-SERVICE
-CUSTOMER_SERVICE_IMAGE_NAME=customer-service-img
-CUSTOMER_SERVICE_CONTAINER_NAME=customer-service
-CUSTOMER_SERVICE_BINARY=customerServiceApp
-
-    CUSTOMER_SERVICE_PORT: Port number for the customer service.
-    CUSTOMER_SERVICE_NAME: The name of the customer service.
-    CUSTOMER_SERVICE_IMAGE_NAME: Docker image name for the customer service.
-    CUSTOMER_SERVICE_CONTAINER_NAME: Docker container name for the customer service.
-    CUSTOMER_SERVICE_BINARY: Name of the compiled Go binary for the customer service.
-
-### Sales Tracking Service Config
-
-SALESTRACKING_SERVICE_PORT=8082
-SALESTRACKING_SERVICE_NAME=SALESTRACKING-SERVICE
-SALESTRACKING_SERVICE_IMAGE_NAME=salestracking-service-img
-SALESTRACKING_SERVICE_CONTAINER_NAME=salestracking-service
-SALESTRACKING_SERVICE_BINARY=salestrackingServiceApp
-
-    SALESTRACKING_SERVICE_PORT: Port number for the sales tracking service.
-    SALESTRACKING_SERVICE_NAME: Name of the sales tracking service.
-    SALESTRACKING_SERVICE_IMAGE_NAME: Docker image name for the sales tracking service.
-    SALESTRACKING_SERVICE_CONTAINER_NAME: Docker container name for the sales tracking service.
-    SALESTRACKING_SERVICE_BINARY: Name of the compiled Go binary for the sales tracking service.
-
-### User Service Database Config
-
-USER_POSTGRES_DB_HOST=user-db
-USER_POSTGRES_DB_PORT=5432
-USER_POSTGRES_DB_USER=user
-USER_POSTGRES_DB_PASSWORD=user_password
-USER_POSTGRES_DB_NAME=user_db
-USER_POSTGRES_DB_CONTAINER_NAME=user-db
-
-    USER_POSTGRES_DB_HOST: The hostname or IP address of the PostgreSQL database for the user service.
-    USER_POSTGRES_DB_PORT: The port number on which the PostgreSQL service is running for the user service.
-    USER_POSTGRES_DB_USER: Username for the user service's PostgreSQL database.
-    USER_POSTGRES_DB_PASSWORD: Password for the user service's PostgreSQL database.
-    USER_POSTGRES_DB_NAME: The name of the database for the user service.
-    USER_POSTGRES_DB_CONTAINER_NAME: Docker container name for the user service's PostgreSQL database.
-
-### Customer Service Database Config
-
-CUSTOMER_POSTGRES_DB_HOST=customer-db
-CUSTOMER_POSTGRES_DB_PORT=5433
-CUSTOMER_POSTGRES_DB_USER=customer
-CUSTOMER_POSTGRES_DB_PASSWORD=customer_password
-CUSTOMER_POSTGRES_DB_NAME=customer_db
-CUSTOMER_POSTGRES_DB_CONTAINER_NAME=customer-db
-
-    This section follows the same structure as the User Service Database Config, but it's for the customer service database.
-
-### Sales Tracking Service Database Config
-
-SALESTRACKING_POSTGRES_DB_HOST=salestracking-db
-SALESTRACKING_POSTGRES_DB_PORT=5434
-SALESTRACKING_POSTGRES_DB_USER=salestracking
-SALESTRACKING_POSTGRES_DB_PASSWORD=salestracking_password
-SALESTRACKING_POSTGRES_DB_NAME=salestracking_db
-SALESTRACKING_POSTGRES_DB_CONTAINER_NAME=salestracking-db
-
-    This section follows the same structure as the previous two, but it's for the sales tracking service database.
-
-_Purpose of This .env File_
-
-This .env file:
-
-    Provides a centralized location for storing environment-specific configuration values for your services.
-    Helps you configure service ports, Docker container names, binary names, database connections, and other sensitive data like JWT secrets.
+Provides a centralized location for storing environment-specific configuration values for our services.
+Helps our configure service ports, Docker container names, binary names, database connections, and other sensitive data like JWT secrets.
 
 
 ### Makefile Purpose:
@@ -171,17 +74,101 @@ How It Works:
 
 # BACK-END-SERVICES
 
+#### Backend SW Structure for all services:
+![alt text](image-1.png)
+
 ### USER-SERVIS
 
 User service is the service that communicates with the database where user admin information is kept and provides management. It starts the web service with port __8080__.
+
+
+#### API Endpoints
+
+###### Public Routes (No Authentication Required)
+| Method | Endpoint      | Description |
+|--------|-------------|-------------|
+| `POST` | `/register`  | Registers a new user |
+| `POST` | `/login`     | Logs in an existing user |
+| `GET`  | `/health`    | Checks if the service is healthy |
+| `GET`  | `/swagger/*` | Serves Swagger API documentation |
+
+###### Protected Routes (Require JWT Authentication)
+| Method  | Endpoint              | Description |
+|---------|----------------------|-------------|
+| `GET`   | `/user`               | Retrieves a user by their ID |
+| `POST`  | `/update-password`    | Updates the user's password |
+| `PUT`   | `/update-user`        | Updates user information |
+| `PUT`   | `/deactivate-user`    | Deactivates a user by username |
+| `PUT`   | `/activate-user`      | Activates a deactivated user |
+| `PUT`   | `/update-email`       | Updates the user's email address |
+| `PUT`   | `/update-role`        | Updates the user's role |
+| `DELETE`| `/delete-user`        | Deletes a user |
+
+
+
 
 ### CUSTOMER-SERVIS
 
 It is the service that listening to port __8081__ and transfers customer information that will make the purchase to the database and manages it.
 
+#### Customer Service API Endpoints
+
+#### Public Routes (No Authentication Required)
+| Method | Endpoint       | Description |
+|--------|--------------|-------------|
+| `POST` | `/register`   | Registers a new customer |
+| `POST` | `/login`      | Logs in an existing customer |
+| `GET`  | `/health`     | Checks if the service is healthy |
+
+##### Protected Routes (Require Authentication)
+###### **Customer Management**
+| Method  | Endpoint                | Description |
+|---------|-------------------------|-------------|
+| `GET`   | `/get_all_customer`      | Retrieves all customers |
+| `GET`   | `/order-customers`       | Orders customers based on criteria |
+| `GET`   | `/activated-customers`   | Retrieves activated customers |
+| `GET`   | `/logged-in-customers`   | Retrieves logged-in customers |
+| `GET`   | `/customer`              | Retrieves a specific customer by criteria |
+| `PUT`   | `/update-customer`       | Updates customer information |
+| `PUT`   | `/deactivate-customer`   | Deactivates a customer account |
+| `PUT`   | `/activate-customer`     | Activates a customer account |
+| `DELETE`| `/delete-customer`       | Deletes a customer |
+
+###### **Customer Notes**
+| Method  | Endpoint         | Description |
+|---------|----------------|-------------|
+| `PUT`   | `/update-note`  | Updates an existing customer note |
+| `PUT`   | `/insert-note`  | Inserts a new note for a customer |
+
+###### **Customer Account Updates**
+| Method  | Endpoint            | Description |
+|---------|---------------------|-------------|
+| `POST`  | `/update-password`  | Updates the customer's password |
+| `PUT`   | `/update-email`     | Updates the customer's email address |
+
+
+
 ### SALESTRACKING-SERVIS
 
 It is a service that listens to __8082__ and enables the transfer, updating and management of purchased product information and product status information during sales processes to the database.
+
+#### Sales Tracking Service API Endpoints
+
+###### Public Routes (No Authentication Required)
+| Method | Endpoint  | Description |
+|--------|----------|-------------|
+| `GET`  | `/health` | Checks if the service is healthy |
+
+###### **Sales Management Endpoints**
+| Method   | Endpoint                  | Description |
+|----------|---------------------------|-------------|
+| `POST`   | `/insert-sale`             | Inserts a new sale record |
+| `DELETE` | `/delete-sale`             | Deletes an existing sale record |
+| `PUT`    | `/update-incommunication`  | Updates the "in communication" status of a sale |
+| `PUT`    | `/update-deal`             | Updates the "deal" status of a sale |
+| `PUT`    | `/update-closed`           | Updates the "closed" status of a sale |
+
+
 
 
 # DATABASE TABLE FIELDS
