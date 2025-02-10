@@ -3,6 +3,240 @@
 
 In this study, a total of 6 separate services running on Docker were designed. Development was made on Golang language as the Backend Software language due to its speed and efficiency, and on Ubuntu Linux as the operating system. With Bash shell script language and Makefile, services were created automatically from scratch and all API functions were tested automatically.
 
+
+## Runnig Project on your system:
+
+Download the project git repository to your local PC. Run the following commands in order.
+
+_Curl, Docker, Go, Docker Compose features must be installed on your development PC. If they are not installed or you are not sure, you can run the prepare_development_pc.sh script to automatically install the necessary packages._
+
+```bash
+cd Mindset_Institute/build-tools/
+sudo ./prepare_development_pc.sh
+sudo make -s build
+```
+
+__*You should get terminal output like the one below.*__
+
+```bash
+mutu@mutu:~/projects/Mindset_Institute/build-tools$ sudo make -s build
+[sudo] password for mutu: 
+🧹 Cleaning up all database volumes...
+Stopping customer-service      ... done
+Stopping user-service          ... done
+Stopping salestracking-service ... done
+Stopping user-db               ... done
+Stopping salestracking-db      ... done
+Stopping customer-db           ... done
+Removing customer-service      ... done
+Removing user-service          ... done
+Removing salestracking-service ... done
+Removing user-db               ... done
+Removing salestracking-db      ... done
+Removing customer-db           ... done
+Removing network build-tools_default
+Removing volume build-tools_user_db_data
+Removing volume build-tools_customer_db_data
+Removing volume build-tools_salestracking_db_data
+✅ All volumes removed!
+🔍 Checking for running containers...
+PostgreSQL is not running on port 5432.
+1- 🚀 Building user-service binary...
+/bin/sh: 11: ./.env: n!X2ZjzGp#nJ2k2ZoLs45!Vqa5m0F!ztr7@1f#Vjz1j: not found
+✅ Done! user-service binary...
+2- 🚀 Building customer-service binary...
+/bin/sh: 11: ./.env: n!X2ZjzGp#nJ2k2ZoLs45!Vqa5m0F!ztr7@1f#Vjz1j: not found
+✅ Done! customer-service binary...
+3- 🚀 Building salestracking-service binary...
+/bin/sh: 11: ./.env: n!X2ZjzGp#nJ2k2ZoLs45!Vqa5m0F!ztr7@1f#Vjz1j: not found
+✅ Done! salestracking-service binary...
+🚀 Building (when required) and starting docker images with environment variables...
+Creating network "build-tools_default" with the default driver
+Creating volume "build-tools_user_db_data" with default driver
+Creating volume "build-tools_customer_db_data" with default driver
+Creating volume "build-tools_salestracking_db_data" with default driver
+Building user-service
+[+] Building 2.3s (15/15) FINISHED                                                                                                                                       docker:default
+ => [internal] load build definition from user-service.dockerfile                                                                                                                  0.0s
+ => => transferring dockerfile: 746B                                                                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/alpine:latest                                                                                                                   2.2s
+ => [internal] load metadata for docker.io/library/golang:1.23-alpine                                                                                                              0.8s
+ => [internal] load .dockerignore                                                                                                                                                  0.0s
+ => => transferring context: 2B                                                                                                                                                    0.0s
+ => [builder 1/6] FROM docker.io/library/golang:1.23-alpine@sha256:2c49857f2295e89b23b28386e57e018a86620a8fede5003900f2d138ba9c4037                                                0.0s
+ => [internal] load build context                                                                                                                                                  0.0s
+ => => transferring context: 370B                                                                                                                                                  0.0s
+ => [stage-1 1/3] FROM docker.io/library/alpine:latest@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099                                                     0.0s
+ => CACHED [stage-1 2/3] WORKDIR /app                                                                                                                                              0.0s
+ => CACHED [builder 2/6] WORKDIR /app                                                                                                                                              0.0s
+ => CACHED [builder 3/6] COPY go.mod go.sum ./                                                                                                                                     0.0s
+ => CACHED [builder 4/6] RUN go mod download                                                                                                                                       0.0s
+ => CACHED [builder 5/6] COPY cmd/api /app/cmd/api                                                                                                                                 0.0s
+ => CACHED [builder 6/6] RUN go build -o userServiceApp ./cmd/api                                                                                                                  0.0s
+ => CACHED [stage-1 3/3] COPY --from=builder /app/userServiceApp .                                                                                                                 0.0s
+ => exporting to image                                                                                                                                                             0.0s
+ => => exporting layers                                                                                                                                                            0.0s
+ => => writing image sha256:bd123c0c62631151699d0b5fa6c755be2860e588ac4f90a99f0c14b8e40f0dcb                                                                                       0.0s
+ => => naming to docker.io/library/user-service-img                                                                                                                                0.0s
+Building customer-service
+[+] Building 0.6s (15/15) FINISHED                                                                                                                                       docker:default
+ => [internal] load build definition from customer-service.dockerfile                                                                                                              0.0s
+ => => transferring dockerfile: 762B                                                                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/alpine:latest                                                                                                                   0.2s
+ => [internal] load metadata for docker.io/library/golang:1.23-alpine                                                                                                              0.5s
+ => [internal] load .dockerignore                                                                                                                                                  0.0s
+ => => transferring context: 2B                                                                                                                                                    0.0s
+ => [stage-1 1/3] FROM docker.io/library/alpine:latest@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099                                                     0.0s
+ => [builder 1/6] FROM docker.io/library/golang:1.23-alpine@sha256:2c49857f2295e89b23b28386e57e018a86620a8fede5003900f2d138ba9c4037                                                0.0s
+ => [internal] load build context                                                                                                                                                  0.0s
+ => => transferring context: 370B                                                                                                                                                  0.0s
+ => CACHED [stage-1 2/3] WORKDIR /app                                                                                                                                              0.0s
+ => CACHED [builder 2/6] WORKDIR /app                                                                                                                                              0.0s
+ => CACHED [builder 3/6] COPY go.mod go.sum ./                                                                                                                                     0.0s
+ => CACHED [builder 4/6] RUN go mod download                                                                                                                                       0.0s
+ => CACHED [builder 5/6] COPY cmd/api /app/cmd/api                                                                                                                                 0.0s
+ => CACHED [builder 6/6] RUN go build -o customerServiceApp ./cmd/api                                                                                                              0.0s
+ => CACHED [stage-1 3/3] COPY --from=builder /app/customerServiceApp .                                                                                                             0.0s
+ => exporting to image                                                                                                                                                             0.0s
+ => => exporting layers                                                                                                                                                            0.0s
+ => => writing image sha256:4a0d85831b11417021ae358d4af89702e9eb0c01dd6f88f97950781abf284a0c                                                                                       0.0s
+ => => naming to docker.io/library/customer-service-img                                                                                                                            0.0s
+Building salestracking-service
+[+] Building 0.4s (15/15) FINISHED                                                                                                                                       docker:default
+ => [internal] load build definition from salestracking-service.dockerfile                                                                                                         0.0s
+ => => transferring dockerfile: 782B                                                                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/alpine:latest                                                                                                                   0.3s
+ => [internal] load metadata for docker.io/library/golang:1.23-alpine                                                                                                              0.2s
+ => [internal] load .dockerignore                                                                                                                                                  0.0s
+ => => transferring context: 2B                                                                                                                                                    0.0s
+ => [stage-1 1/3] FROM docker.io/library/alpine:latest@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099                                                     0.0s
+ => [builder 1/6] FROM docker.io/library/golang:1.23-alpine@sha256:2c49857f2295e89b23b28386e57e018a86620a8fede5003900f2d138ba9c4037                                                0.0s
+ => [internal] load build context                                                                                                                                                  0.0s
+ => => transferring context: 369B                                                                                                                                                  0.0s
+ => CACHED [stage-1 2/3] WORKDIR /app                                                                                                                                              0.0s
+ => CACHED [builder 2/6] WORKDIR /app                                                                                                                                              0.0s
+ => CACHED [builder 3/6] COPY go.mod go.sum ./                                                                                                                                     0.0s
+ => CACHED [builder 4/6] RUN go mod download                                                                                                                                       0.0s
+ => CACHED [builder 5/6] COPY cmd/api /app/cmd/api                                                                                                                                 0.0s
+ => CACHED [builder 6/6] RUN go build -o salestrackingServiceApp ./cmd/api                                                                                                         0.0s
+ => CACHED [stage-1 3/3] COPY --from=builder /app/salestrackingServiceApp .                                                                                                        0.0s
+ => exporting to image                                                                                                                                                             0.0s
+ => => exporting layers                                                                                                                                                            0.0s
+ => => writing image sha256:07f08e19d2dd25c879749a90a9a4984f4663a410d3a467485a80e88de4200c17                                                                                       0.0s
+ => => naming to docker.io/library/salestracking-service-img                                                                                                                       0.0s
+Creating customer-db      ... done
+Creating salestracking-db ... done
+Creating user-db          ... done
+Creating customer-service      ... done
+Creating user-service          ... done
+Creating salestracking-service ... done
+✅ Docker images built and started!
+⏳ Waiting for 5   seconds to allow services to initialize ..... ✅
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+📜 Fetching logs for all services...
+Attaching to salestracking-service, user-service, customer-service, user-db, salestracking-db, customer-db
+customer-service         | 🔧 Loaded Environment Variables - CUSTOMER_SERVICE
+customer-service         | DBHost: customer-db
+customer-service         | DBUser: customer
+customer-service         | DBPassword: customer_password
+customer-service         | DBName: customer_db
+customer-service         | DBPort: 5432
+customer-service         | ServicePort: 8081
+customer-service         | ServiceName: CUSTOMER-SERVICE
+customer-service         | ✅ DATABASE connection success!
+customer-service         | 🚀 CUSTOMER-SERVICE is running on port: 8081
+salestracking-db         | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+salestracking-db         | 
+salestracking-db         | waiting for server to shut down...2025-02-10 16:21:46.139 UTC [48] LOG:  received fast shutdown request
+salestracking-db         | .2025-02-10 16:21:46.142 UTC [48] LOG:  aborting any active transactions
+salestracking-db         | 2025-02-10 16:21:46.143 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+salestracking-db         | 2025-02-10 16:21:46.143 UTC [49] LOG:  shutting down
+salestracking-db         | 2025-02-10 16:21:46.147 UTC [49] LOG:  checkpoint starting: shutdown immediate
+salestracking-db         | 2025-02-10 16:21:46.201 UTC [49] LOG:  checkpoint complete: wrote 918 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.014 s, sync=0.031 s, total=0.058 s; sync files=301, longest=0.003 s, average=0.001 s; distance=4222 kB, estimate=4222 kB
+salestracking-db         | 2025-02-10 16:21:46.206 UTC [48] LOG:  database system is shut down
+salestracking-db         |  done
+salestracking-db         | server stopped
+salestracking-db         | 
+salestracking-db         | PostgreSQL init process complete; ready for start up.
+salestracking-db         | 
+salestracking-db         | 2025-02-10 16:21:46.282 UTC [1] LOG:  starting PostgreSQL 15.10 (Debian 15.10-1.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+salestracking-db         | 2025-02-10 16:21:46.282 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+salestracking-db         | 2025-02-10 16:21:46.282 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+salestracking-db         | 2025-02-10 16:21:46.293 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+salestracking-db         | 2025-02-10 16:21:46.306 UTC [64] LOG:  database system was shut down at 2025-02-10 16:21:46 UTC
+salestracking-db         | 2025-02-10 16:21:46.319 UTC [1] LOG:  database system is ready to accept connections
+customer-db              | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+customer-db              | 
+customer-db              | 2025-02-10 16:21:46.215 UTC [48] LOG:  received fast shutdown request
+customer-db              | waiting for server to shut down....2025-02-10 16:21:46.218 UTC [48] LOG:  aborting any active transactions
+customer-db              | 2025-02-10 16:21:46.223 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+customer-db              | 2025-02-10 16:21:46.223 UTC [49] LOG:  shutting down
+customer-db              | 2025-02-10 16:21:46.228 UTC [49] LOG:  checkpoint starting: shutdown immediate
+customer-db              | 2025-02-10 16:21:46.341 UTC [49] LOG:  checkpoint complete: wrote 918 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.029 s, sync=0.061 s, total=0.119 s; sync files=301, longest=0.006 s, average=0.001 s; distance=4222 kB, estimate=4222 kB
+customer-db              | 2025-02-10 16:21:46.357 UTC [48] LOG:  database system is shut down
+customer-db              |  done
+customer-db              | server stopped
+customer-db              | 
+customer-db              | PostgreSQL init process complete; ready for start up.
+customer-db              | 
+customer-db              | 2025-02-10 16:21:46.469 UTC [1] LOG:  starting PostgreSQL 15.10 (Debian 15.10-1.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+customer-db              | 2025-02-10 16:21:46.469 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+customer-db              | 2025-02-10 16:21:46.469 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+customer-db              | 2025-02-10 16:21:46.478 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+customer-db              | 2025-02-10 16:21:46.493 UTC [64] LOG:  database system was shut down at 2025-02-10 16:21:46 UTC
+customer-db              | 2025-02-10 16:21:46.505 UTC [1] LOG:  database system is ready to accept connections
+user-service             | 🔧 Loaded Environment Variables - USER_SERVICE
+user-service             | DBHost: user-db
+user-service             | DBUser: user
+user-service             | DBPassword: user_password
+user-service             | DBName: user_db
+user-service             | DBPort: 5432
+user-service             | ServicePort: 8080
+user-service             | ServiceName: USER-SERVICE
+user-service             | JWTSecret: 6$8fjZ2@sjKl#F8tTr1&n!X2ZjzGp#nJ2k2ZoLs45!Vqa5m0F!ztr7@1f#Vjz1j
+user-service             | ✅ DATABASE connection success!
+user-service             | 🚀 USER-SERVICE is running on port: 8080
+salestracking-service    | 🔧 Loaded Environment Variables -SALESTRACKING_SERVICE
+salestracking-service    | DBHost: salestracking-db
+salestracking-service    | DBUser: salestracking
+salestracking-service    | DBPassword: salestracking_password
+salestracking-service    | DBName: salestracking_db
+salestracking-service    | DBPort: 5432
+salestracking-service    | ServicePort: 8082
+salestracking-service    | ServiceName: SALESTRACKING-SERVICE
+salestracking-service    | ✅ DATABASE connection success!
+salestracking-service    | 🚀 SALESTRACKING-SERVICE is running on port: 8082
+user-db                  | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+user-db                  | 
+user-db                  | waiting for server to shut down....2025-02-10 16:21:46.215 UTC [48] LOG:  received fast shutdown request
+user-db                  | 2025-02-10 16:21:46.218 UTC [48] LOG:  aborting any active transactions
+user-db                  | 2025-02-10 16:21:46.222 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+user-db                  | 2025-02-10 16:21:46.223 UTC [49] LOG:  shutting down
+user-db                  | 2025-02-10 16:21:46.226 UTC [49] LOG:  checkpoint starting: shutdown immediate
+user-db                  | 2025-02-10 16:21:46.338 UTC [49] LOG:  checkpoint complete: wrote 918 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.031 s, sync=0.061 s, total=0.116 s; sync files=301, longest=0.006 s, average=0.001 s; distance=4222 kB, estimate=4222 kB
+user-db                  | 2025-02-10 16:21:46.354 UTC [48] LOG:  database system is shut down
+user-db                  |  done
+user-db                  | server stopped
+user-db                  | 
+user-db                  | PostgreSQL init process complete; ready for start up.
+user-db                  | 
+user-db                  | 2025-02-10 16:21:46.469 UTC [1] LOG:  starting PostgreSQL 15.10 (Debian 15.10-1.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+user-db                  | 2025-02-10 16:21:46.469 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+user-db                  | 2025-02-10 16:21:46.469 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+user-db                  | 2025-02-10 16:21:46.481 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+user-db                  | 2025-02-10 16:21:46.495 UTC [64] LOG:  database system was shut down at 2025-02-10 16:21:46 UTC
+user-db                  | 2025-02-10 16:21:46.508 UTC [1] LOG:  database system is ready to accept connections
+🚀 Running Containers:
+CONTAINER ID   IMAGE                       COMMAND                  CREATED          STATUS                    PORTS                                         NAMES
+fb91183bd8bc   salestracking-service-img   "/app/salestrackingS…"   6 seconds ago    Up 5 seconds              0.0.0.0:8082->8082/tcp, :::8082->8082/tcp     salestracking-service
+8d5f288dca7b   user-service-img            "/app/userServiceApp"    6 seconds ago    Up 5 seconds              0.0.0.0:8080->8080/tcp, :::8080->8080/tcp     user-service
+e55ccbd1c2f3   customer-service-img        "/app/customerServic…"   6 seconds ago    Up 5 seconds              0.0.0.0:8081->8081/tcp, :::8081->8081/tcp     customer-service
+1b4c74172afb   postgres:15                 "docker-entrypoint.s…"   17 seconds ago   Up 16 seconds (healthy)   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp     user-db
+756e1794e1a9   postgres:15                 "docker-entrypoint.s…"   17 seconds ago   Up 16 seconds (healthy)   0.0.0.0:5434->5432/tcp, [::]:5434->5432/tcp   salestracking-db
+78778f43a0a6   postgres:15                 "docker-entrypoint.s…"   17 seconds ago   Up 16 seconds (healthy)   0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp   customer-db
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+```
 ## Running Containers
 
 ![alt text](image.png)
@@ -167,8 +401,6 @@ It is a service that listens to __8082__ and enables the transfer, updating and 
 | `PUT`    | `/update-incommunication`  | Updates the "in communication" status of a sale |
 | `PUT`    | `/update-deal`             | Updates the "deal" status of a sale |
 | `PUT`    | `/update-closed`           | Updates the "closed" status of a sale |
-
-
 
 
 # DATABASE TABLE FIELDS

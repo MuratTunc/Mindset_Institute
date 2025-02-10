@@ -35,14 +35,15 @@ wait_for_integration_test:
 	done
 	echo " ✅"
 
-## wait_for_services: Waits for the services to initialize by showing animated dots
+## wait_general: Waits before running the next integration test
 wait_general:
 	echo -n "⏳ Waiting for $(WAIT_TIME) next integration test... "
 	for i in $$(seq 1 $(WAIT_TIME)); do \
 		echo -n "."; \
 		sleep 1; \
 	done
-	echo " ✅"	
+	echo " ✅"
+
 
 ## clean_volumes: Removes all volumes (database data) to start fresh
 clean_volumes:
@@ -116,16 +117,8 @@ help:
 integration_test:
 	echo "🔍 Running integration tests..."
 	cd ../integration_tests && \
-	echo "🚀 Running integration_user_service.sh..." && \
 	./integration_user_service.sh && \
-	echo "⏳ Waiting before running integration_customer_service.sh..." && \
-	$(MAKE) wait_general && \
-	echo "🚀 Running integration_customer_service.sh..." && \
 	./integration_customer_service.sh && \
-	echo "⏳ Waiting before running integration_salestracking_service.sh..." && \
-	$(MAKE) wait_general && \
-	echo "🚀 Running integration_salestracking_service.sh..." && \
-	./integration_salestracking_service.sh && \
-	echo "⏳ Waiting before finishing integration tests..." && \
-	$(MAKE) wait_general
+	./integration_salestracking_service.sh
 	echo "✅ Integration tests completed successfully!"
+
