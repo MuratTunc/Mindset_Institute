@@ -1100,8 +1100,6 @@ cd Mindset_Institute/integration_tests/
 ./integration_salestracking_service.sh 
 ```
 
-
-
 ## Docker services logs
 
 docker logs user-service
