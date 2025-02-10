@@ -93,26 +93,10 @@ Explanation:
 
 
 
-## Steps to Integrate Swagger:
-
-Install Swagger in your project (if you haven’t already):
-
-go install github.com/swaggo/swag/cmd/swag@latest
-go get -u github.com/swaggo/gin-swagger
-go get -u github.com/swaggo/files
-
-Generate Swagger Docs:
-
-swag init
-
-Run Your Server and access Swagger UI at:
-
-http://localhost:8080/swagger/index.html
-
 
 ### API DOCUMENTATION
 
-## USER-SERVICE
+## USER-SERVICE API
 
 ### TEST END POINT--->HEALTH CHECK
 ```bash
@@ -315,5 +299,263 @@ HTTP Status Code: 200
 (0 rows)
 ```
 
-ALL TESTS ARE DONE!!!
+## CUSTOMER SERVICE API
+
+### TEST END POINT--->HEALTH CHECK
+```bash
+REQUEST URL: http://localhost:8081/health
+REQUEST TYPE: GET
+COMMAND: curl -X GET "http://localhost:8081/health"
+Health Check Response Body: OK
+HTTP Status Code: 200
+Service is healthy!
+✅ Health Check successfully
+```
+
+### TEST END POINT--->REGISTER NEW CUSTOMER
+```bash
+REQUEST URL: http://localhost:8081/register
+REQUEST TYPE: POST
+JSON BODY: {
+  "customername": "testcustomer",
+  "mailAddress": "testcustomer@example.com",
+  "password": "TestPassword123"
+}
+COMMAND: curl -X POST "http://localhost:8081/register" -H "Content-Type: application/json" -d '{
+  "customername": "testcustomer",
+  "mailAddress": "testcustomer@example.com",
+  "password": "TestPassword123"
+}'
+Registration response: {"mailAddress":"testcustomer@example.com","message":"Customer created successfully"}
+HTTP Status Code: 200
+Customer registered successfully!
+✅ Registration successful!
+```
+
+### TEST END POINT--->LOGIN CUSTOMER
+```bash
+REQUEST URL: http://localhost:8081/login
+REQUEST TYPE: POST
+JSON BODY: {
+  "customername": "testcustomer",
+  "password": "TestPassword123"
+}
+COMMAND: curl -X POST "http://localhost:8081/login" -H "Content-Type: application/json" -d '{
+  "customername": "testcustomer",
+  "password": "TestPassword123"
+}'
+Login response body: {"loginStatus":"true","message":"Login successful"}
+HTTP Status Code: 200
+Login successful.
+✅ Login successful!
+
+ id | customername |       mail_address       |                           password                           | activated | login_status | note |          created_at           |          updated_at           
+----+--------------+--------------------------+--------------------------------------------------------------+-----------+--------------+------+-------------------------------+-------------------------------
+  1 | testcustomer | testcustomer@example.com | $2a$10$VJGBI4cH4QMZqOJl.DY33ebzSxQHQQVRYSKAQJFofdIfGoACHpr1y | t         | t            |      | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:26.558239+00
+(1 row)
+```
+### TEST END POINT--->DEACTIVATE CUSTOMER
+```bash
+REQUEST URL: http://localhost:8081/deactivate-customer
+REQUEST TYPE: PUT
+JSON BODY: {
+  "customername": "testcustomer"
+}
+COMMAND: curl -X PUT "http://localhost:8081/deactivate-customer" -H "Authorization: Bearer " -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer"
+}"
+Deactivate response body: {"message":"Customer deactivated successfully"}
+HTTP Status Code: 200
+✅ Customer deactivated successfully.
+
+ id | customername |       mail_address       |                           password                           | activated | login_status | note |          created_at           |          updated_at           
+----+--------------+--------------------------+--------------------------------------------------------------+-----------+--------------+------+-------------------------------+-------------------------------
+  1 | testcustomer | testcustomer@example.com | $2a$10$VJGBI4cH4QMZqOJl.DY33ebzSxQHQQVRYSKAQJFofdIfGoACHpr1y | f         | t            |      | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:26.661808+00
+(1 row)
+```
+### TEST END POINT--->ACTIVATE CUSTOMER
+```basH
+REQUEST URL: http://localhost:8081/activate-customer
+REQUEST TYPE: PUT
+JSON BODY: {
+  "customername": "testcustomer"
+}
+COMMAND: curl -X PUT "http://localhost:8081/activate-customer" -H "Authorization: Bearer " -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer"
+}"
+Activate response body: {"message":"Customer activated successfully"}
+HTTP Status Code: 200
+✅ Customer activated successfully.
+
+ id | customername |       mail_address       |                           password                           | activated | login_status | note |          created_at           |          updated_at           
+----+--------------+--------------------------+--------------------------------------------------------------+-----------+--------------+------+-------------------------------+-------------------------------
+  1 | testcustomer | testcustomer@example.com | $2a$10$VJGBI4cH4QMZqOJl.DY33ebzSxQHQQVRYSKAQJFofdIfGoACHpr1y | t         | t            |      | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:26.774977+00
+(1 row)
+```
+### TEST END POINT--->UPDATE EMAIL ADDRESS
+```bash
+REQUEST URL: http://localhost:8081/update-email
+REQUEST TYPE: PUT
+JSON BODY: {
+  "customername": "testcustomer",
+  "new_email": "newmail@example.com"
+}
+COMMAND: curl -X PUT "http://localhost:8081/update-email" -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer",
+  "new_email": "newmail@example.com"
+}"
+Update email response body: {"message":"Email updated successfully"}
+HTTP Status Code: 200
+✅ Email updated successfully.
+
+ id | customername |    mail_address     |                           password                           | activated | login_status | note |          created_at           |          updated_at           
+----+--------------+---------------------+--------------------------------------------------------------+-----------+--------------+------+-------------------------------+-------------------------------
+  1 | testcustomer | newmail@example.com | $2a$10$VJGBI4cH4QMZqOJl.DY33ebzSxQHQQVRYSKAQJFofdIfGoACHpr1y | t         | t            |      | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:26.883792+00
+(1 row)
+```
+### TEST END POINT--->UPDATE PASSWORD
+```bash
+REQUEST URL: http://localhost:8081/update-password
+REQUEST TYPE: POST
+JSON BODY: {
+  "customername": "testcustomer",
+  "new_password": "NewTestPassword123"
+}
+COMMAND: curl -X POST "http://localhost:8081/update-password" -H "Authorization: Bearer " -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer",
+  "new_password": "NewTestPassword123"
+}"
+Update password response body: Password updated successfully
+HTTP Status Code: 200
+✅ Password updated successfully.
+
+ id | customername |    mail_address     |                           password                           | activated | login_status | note |          created_at           |          updated_at           
+----+--------------+---------------------+--------------------------------------------------------------+-----------+--------------+------+-------------------------------+-------------------------------
+  1 | testcustomer | newmail@example.com | $2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq | t         | t            |      | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:27.146958+00
+(1 row)
+```
+### TEST END POINT--->INSERT NOTE
+```bash
+REQUEST URL: http://localhost:8081/insert-note
+REQUEST TYPE: PUT
+JSON BODY: {
+  "customername": "testcustomer",
+  "new_note": "This is a new note to append."
+}
+COMMAND: curl -X PUT "http://localhost:8081/insert-note" -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer",
+  "new_note": "This is a new note to append."
+}"
+Insert Note response body: {"message":"Note appended successfully"}
+HTTP Status Code: 200
+✅ Note inserted successfully.
+
+ id | customername |    mail_address     |                           password                           | activated | login_status |             note              |          created_at           |          updated_at           
+----+--------------+---------------------+--------------------------------------------------------------+-----------+--------------+-------------------------------+-------------------------------+-------------------------------
+  1 | testcustomer | newmail@example.com | $2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq | t         | t            | This is a new note to append. | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:27.249643+00
+(1 row)
+```
+### TEST END POINT--->UPDATE NOTE
+```bash
+REQUEST URL: http://localhost:8081/update-note
+REQUEST TYPE: PUT
+JSON BODY: {
+  "customername": "testcustomer",
+  "note": "This is the completely new note."
+}
+COMMAND: curl -X PUT "http://localhost:8081/update-note" -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer",
+  "note": "This is the completely new note."
+}"
+Update Note response body: {"message":"Note updated successfully"}
+HTTP Status Code: 200
+✅ Note updated successfully.
+
+ id | customername |    mail_address     |                           password                           | activated | login_status |               note               |          created_at           |          updated_at          
+----+--------------+---------------------+--------------------------------------------------------------+-----------+--------------+----------------------------------+-------------------------------+------------------------------
+  1 | testcustomer | newmail@example.com | $2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq | t         | t            | This is the completely new note. | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:27.34629+00
+(1 row)
+```
+### TEST END POINT--->UPDATE CUSTOMER
+```bash
+REQUEST URL: http://localhost:8081/update-customer
+REQUEST TYPE: PUT
+JSON BODY: {
+  "customername": "testcustomer",
+  "mailAddress": "updatedcustomer@example.com"
+}
+COMMAND: curl -X PUT "http://localhost:8081/update-customer" -H "Authorization: Bearer " -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer",
+  "mailAddress": "updatedcustomer@example.com"
+}"
+Update response body: Customer updated successfully
+HTTP Status Code: 200
+✅ Customer updated successfully.
+
+ id | customername |    mail_address     |                           password                           | activated | login_status |               note               |          created_at           |          updated_at          
+----+--------------+---------------------+--------------------------------------------------------------+-----------+--------------+----------------------------------+-------------------------------+------------------------------
+  1 | testcustomer | newmail@example.com | $2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq | t         | t            | This is the completely new note. | 2025-02-10 08:46:26.492897+00 | 2025-02-10 08:46:27.45609+00
+(1 row)
+```
+### TEST END POINT--->ORDER CUSTOMERS
+```bash
+REQUEST URL: http://localhost:8081/order-customers
+Testing ordering by created_at (default):
+COMMAND: curl -X GET "http://localhost:8081/order-customers"
+Response Body: [{"ID":1,"Customername":"testcustomer","MailAddress":"newmail@example.com","Password":"$2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq","Activated":true,"LoginStatus":true,"Note":"This is the completely new note.","CreatedAt":"2025-02-10T08:46:26.492897Z","UpdatedAt":"2025-02-10T08:46:27.45609Z"}]
+HTTP Status Code: 200
+✅ Customers ordered by created_at.
+Testing ordering by customername:
+COMMAND: curl -X GET "http://localhost:8081/order-customers?order_by=customername"
+Response Body: [{"ID":1,"Customername":"testcustomer","MailAddress":"newmail@example.com","Password":"$2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq","Activated":true,"LoginStatus":true,"Note":"This is the completely new note.","CreatedAt":"2025-02-10T08:46:26.492897Z","UpdatedAt":"2025-02-10T08:46:27.45609Z"}]
+HTTP Status Code: 200
+✅ Customers ordered by customername.
+Testing ordering by updated_at:
+COMMAND: curl -X GET "http://localhost:8081/order-customers?order_by=updated_at"
+Response Body: [{"ID":1,"Customername":"testcustomer","MailAddress":"newmail@example.com","Password":"$2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq","Activated":true,"LoginStatus":true,"Note":"This is the completely new note.","CreatedAt":"2025-02-10T08:46:26.492897Z","UpdatedAt":"2025-02-10T08:46:27.45609Z"}]
+HTTP Status Code: 200
+✅ Customers ordered by updated_at.
+Testing ordering with invalid 'order_by' field (should default):
+COMMAND: curl -X GET "http://localhost:8081/order-customers?order_by=invalid_field"
+Response Body: [{"ID":1,"Customername":"testcustomer","MailAddress":"newmail@example.com","Password":"$2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq","Activated":true,"LoginStatus":true,"Note":"This is the completely new note.","CreatedAt":"2025-02-10T08:46:26.492897Z","UpdatedAt":"2025-02-10T08:46:27.45609Z"}]
+HTTP Status Code: 200
+✅ Customers ordered with invalid 'order_by' field (default applied).
+```
+### TEST END POINT--->GET ACTIVATED CUSTOMERS
+```bash
+REQUEST URL: http://localhost:8081/activated-customers
+REQUEST TYPE: GET
+COMMAND: curl -X GET "http://localhost:8081/activated-customers"
+Response Body: ["testcustomer"]
+HTTP Status Code: 200
+✅ Successfully retrieved activated customer names.
+```
+### TEST END POINT--->GET LOGGED-IN CUSTOMERS
+```bash
+REQUEST URL: http://localhost:8081/logged-in-customers
+REQUEST TYPE: GET
+COMMAND: curl -X GET "http://localhost:8081/logged-in-customers" -H "Content-Type: application/json"
+Response Body: [{"ID":1,"Customername":"testcustomer","MailAddress":"newmail@example.com","Password":"$2a$10$KW2qLeYzR/5zORziOza/IuRwuC.3wGkbA4hVXIVALjjVZmajr58dq","Activated":true,"LoginStatus":true,"Note":"This is the completely new note.","CreatedAt":"2025-02-10T08:46:26.492897Z","UpdatedAt":"2025-02-10T08:46:27.45609Z"}]
+HTTP Status Code: 200
+✅ Successfully retrieved logged-in customers.
+```
+### TEST END POINT--->DELETE CUSTOMER
+```bash
+REQUEST URL: http://localhost:8081/delete-customer
+REQUEST TYPE: DELETE
+JSON BODY: {
+  "customername": "testcustomer"
+}
+COMMAND: curl -X DELETE "http://localhost:8081/delete-customer" -H "Content-Type: application/json" -d "{
+  "customername": "testcustomer"
+}"
+Delete response body: Customer deleted successfully
+HTTP Status Code: 200
+✅ Customer deleted successfully.
+
+ id | customername | mail_address | password | activated | login_status | note | created_at | updated_at 
+----+--------------+--------------+----------+-----------+--------------+------+------------+------------
+(0 rows)
+```
+
 

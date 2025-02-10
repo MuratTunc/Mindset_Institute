@@ -47,7 +47,7 @@ func (app *Config) routes() http.Handler {
 	mux.Put("/update-note", app.UpdateNoteHandler)
 	mux.Put("/insert-note", app.InsertNoteHandler) // Route to insert new note into an existing one
 
-	mux.Delete("/delete-customer/{id}", app.DeleteCustomerHandler) // Delete customer by ID
+	mux.Delete("/delete-customer", app.DeleteCustomerHandler) // Delete customer
 
 	return mux
 }
