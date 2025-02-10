@@ -1,4 +1,4 @@
-## ✅ Running Containers Check:
+# ✅ Running Containers Check:
 
     Microservices:
     ✅ user-service (Port: 8080)
@@ -10,7 +10,7 @@
     ✅ customer-db (Port: 5433)
     ✅ salestracking-db (Port: 5434)
 
-### API DOCUMENTATION
+# API DOCUMENTATION
 
 ## USER-SERVICE API
 
