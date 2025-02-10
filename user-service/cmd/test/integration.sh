@@ -49,26 +49,44 @@ DELETE_USER_URL="$BASE_URL/delete-user"
 
 
 health_check() {
-  echo "<------HEALTH CHECK------>"
-  echo "Checking service health at: $HEALTH_CHECK_URL"
+  echo "TEST END POINT--->HEALTH CHECK"
+  echo "REQUEST URL: $HEALTH_CHECK_URL"
 
-  RESPONSE=$(curl -s -X GET "$HEALTH_CHECK_URL")
+  # Define the HTTP request type
+  REQUEST_TYPE="GET"
 
-  if [[ -z "$RESPONSE" ]]; then
-    echo "❌ Error: No response from service!"
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$HEALTH_CHECK_URL\""
+
+  # Send the request and capture the response
+  HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" -X $REQUEST_TYPE "$HEALTH_CHECK_URL")
+
+  # Extract response body and HTTP status code
+  HTTP_BODY=$(echo "$HEALTH_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$HEALTH_RESPONSE" | tail -n1)
+
+  echo "Health Check Response Body: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  if [ "$HTTP_STATUS" -eq 200 ]; then
+    echo "Service is healthy!"
+  else
+    echo "❌ Health check failed with status code $HTTP_STATUS. Response: $HTTP_BODY"
     exit 1
   fi
 
-  echo "✅ Health Check Response: $RESPONSE"
-  echo "--------------------------"
+  echo "✅ Health Check successfully"
+  echo
 }
+
 
 
 
 # Function to check if the user exists (using the registration endpoint)
 register_user() {
-  echo "REGISTER NEW USER-ENDPOINT"
-  echo "--------------------------"
+  echo "TEST END POINT-->REGISTER NEW USER"
+  echo
   echo "REQUEST URL: $REGISTER_URL"
   
   # Prepare the request body
@@ -106,132 +124,183 @@ register_user() {
     exit 1
   fi
   
-  echo "✅ Register New User SUCCESS!"
-  echo "--------------------------"
+  echo "✅ Register New User User successfully"
+  echo
 }
 
 
 
 # Function to log in and get JWT token
 login_user() {
-  echo "Test: LOGIN USER"
-  echo "--------------------------"
-  echo "URL:$LOGIN_URL"
-
-  LOGIN_RESPONSE=$(curl -s -X POST "$LOGIN_URL" -H "Content-Type: application/json" -d '{
+  echo "TEST END POINT-->LOGIN USER"
+  echo
+  echo "REQUEST URL: $LOGIN_URL"
+  
+  # Prepare the request body
+  JSON_BODY='{
     "username": "'$USERNAME'",
     "password": "'$PASSWORD'"
-  }')
+  }'
 
-  echo "Login response: $LOGIN_RESPONSE"  # Add this line to print the raw response
+  # Define the HTTP request type
+  REQUEST_TYPE="POST"
 
-  JWT_TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token')
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$LOGIN_URL\" -H \"Content-Type: application/json\" -d '$JSON_BODY'"
+  
+  # Print the JSON body
+  echo "JSON BODY: $JSON_BODY"
+  
+  # Send the request and capture the response
+  LOGIN_RESPONSE=$(curl -s -w "\n%{http_code}" -X $REQUEST_TYPE "$LOGIN_URL" -H "Content-Type: application/json" -d "$JSON_BODY")
+  
+  # Extract response body and HTTP status code
+  HTTP_BODY=$(echo "$LOGIN_RESPONSE" | sed '$ d')
+  HTTP_STATUS=$(echo "$LOGIN_RESPONSE" | tail -n1)
+
+  echo "Login response: $HTTP_BODY"
+  echo "HTTP Status Code: $HTTP_STATUS"
+
+  JWT_TOKEN=$(echo "$HTTP_BODY" | jq -r '.token')
 
   if [[ "$JWT_TOKEN" == "null" || -z "$JWT_TOKEN" ]]; then
-    echo "Error: JWT token not received from login."
+    echo "❌ Error: JWT token not received from login."
     exit 1
   fi
 
-  echo "Login successful. JWT token received."
-  echo "--------------------------"
-  
+  echo "✅ Login successful. JWT token received."
+  echo
 }
+
 
 
 # Function to get user details
 get_user_details() {
-  echo "<------USER DETAILS------>"
-  echo "--------------------------"
-  echo "$USERNAME"
-  echo "URL:$USER_URL?username=$USERNAME"
-
-  RESPONSE=$(curl -s -X GET "$USER_URL?username=$USERNAME" -H "Authorization: Bearer $JWT_TOKEN")
-
-  echo "$RESPONSE" | jq .
-
+  echo "TEST END POINT-->GET USER DETAILS"
+  echo
+  echo "REQUEST URL: $USER_URL?username=$USERNAME"
+  
+  # Define the HTTP request type
+  REQUEST_TYPE="GET"
+  
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$USER_URL?username=$USERNAME\" -H \"Authorization: Bearer $JWT_TOKEN\""
+  
+  # Send the request and capture the response
+  RESPONSE=$(curl -s -X $REQUEST_TYPE "$USER_URL?username=$USERNAME" -H "Authorization: Bearer $JWT_TOKEN")
+  
+  # Print the response body
+  echo "Response: $RESPONSE"
+  
+  # Parse the user ID from the response
   USER_ID=$(echo "$RESPONSE" | jq -r '.ID')
 
   if [[ "$USER_ID" == "null" || -z "$USER_ID" ]]; then
-    echo "Error: Could not retrieve user ID."
+    echo "❌ Error: Could not retrieve user ID."
     exit 1
   fi
 
-  echo "User ID retrieved: $USER_ID"
-  echo "--------------------------"
+  echo "✅ User ID retrieved: $USER_ID"
+  echo
 }
 
+
 # Function to deactivate user
-
 deactivate_user() {
-  echo "Test: DEACTIVATE USER"
-  echo "--------------------------"
-  echo "USERNAME: $USERNAME"
-  echo "URL: $DEACTIVATE_USER_URL"
-
+  echo "TEST END POINT-->DEACTIVATE USER"
+  echo
+  echo "REQUEST URL: $DEACTIVATE_USER_URL"
+  
   # Construct JSON payload
   JSON_PAYLOAD=$(jq -n --arg username "$USERNAME" '{username: $username}')
 
+   # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+  
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$DEACTIVATE_USER_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
+  
   # Make the PUT request with JSON body
-  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$DEACTIVATE_USER_URL" \
+  DEACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$DEACTIVATE_USER_URL" \
     -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
     -d "$JSON_PAYLOAD")
-
+  
+  # Extract response body and HTTP status code
   HTTP_BODY=$(echo "$DEACTIVATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$DEACTIVATE_RESPONSE" | tail -n1)
 
+  # Print the response
   echo "Deactivate response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: User deactivation failed."
+    echo "❌ Error: User deactivation failed."
     exit 1
   fi
 
-  echo "User deactivated successfully."
-  echo "--------------------------"
+  echo "✅ User deactivated successfully."
+  echo
 }
+
 
 # Function to activate user
 activate_user() {
-  echo "Test: ACTIVATE USER"
-  echo "--------------------------"
-  echo "USERNAME: $USERNAME"
-  echo "URL: $ACTIVATE_USER_URL"
-
+  echo "TEST END POINT-->ACTIVATE USER"
+  echo
+  echo "REQUEST URL: $ACTIVATE_USER_URL"
+  
   # Construct JSON payload
   JSON_PAYLOAD=$(jq -n --arg username "$USERNAME" '{username: $username}')
 
+  # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+  
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$ACTIVATE_USER_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
+
   # Make the PUT request with JSON body
-  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$ACTIVATE_USER_URL" \
+  ACTIVATE_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$ACTIVATE_USER_URL" \
     -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
     -d "$JSON_PAYLOAD")
-
+  
+  # Extract response body and HTTP status code
   HTTP_BODY=$(echo "$ACTIVATE_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$ACTIVATE_RESPONSE" | tail -n1)
 
+  # Print the response
   echo "Activate response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: User activation failed."
+    echo "❌ Error: User activation failed."
     exit 1
   fi
 
-  echo "User activated successfully."
-  echo "--------------------------"
+  echo "✅ User activated successfully."
+  echo
 }
+
 
 
 
 # Function to update user details
 update_user() {
-  echo "Test: UPDATE USER"
-  echo "--------------------------"
-  echo "USERNAME: $USERNAME"
-  echo "URL: $UPDATE_USER_URL"
-
+  echo "TEST END POINT-->UPDATE USER"
+  echo
+  echo "REQUEST URL: $UPDATE_USER_URL"
+  
   # Construct JSON payload dynamically
   JSON_PAYLOAD=$(jq -n \
     --arg username "$USERNAME" \
@@ -243,8 +312,18 @@ update_user() {
       role: ($role // empty)
     }')
 
+  # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+  
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$UPDATE_USER_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
+
   # Make the PUT request with JSON body
-  UPDATE_USER_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_USER_URL" \
+  UPDATE_USER_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$UPDATE_USER_URL" \
     -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
     -d "$JSON_PAYLOAD")
@@ -253,52 +332,74 @@ update_user() {
   HTTP_BODY=$(echo "$UPDATE_USER_RESPONSE" | sed '$ d')
   HTTP_STATUS=$(echo "$UPDATE_USER_RESPONSE" | tail -n1)
 
+  # Print the response
   echo "Update response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: User update failed."
+    echo "❌ Error: User update failed."
     exit 1
   fi
 
-  echo "User updated successfully."
-  echo "--------------------------"
+  echo "✅ User updated successfully."
+  echo
 }
 
 
 # Function to update user password
 update_password() {
-  echo "Test: UPDATE NEW PASSWORD"
-  echo "--------------------------"
-  echo "URL:$UPDATE_PASSWORD_URL"
+  echo "TEST END POINT-->UPDATE NEW PASSWORD"
+  echo
+  echo "REQUEST URL: $UPDATE_PASSWORD_URL"
+  
+  # Construct JSON payload dynamically
+  JSON_PAYLOAD=$(jq -n \
+    --arg username "$USERNAME" \
+    --arg new_password "$NEW_PASSWORD" \
+    '{
+      username: $username,
+      new_password: $new_password
+    }')
 
-  UPDATE_PASSWORD_RESPONSE=$(curl -s -w "%{http_code}" -X POST "$UPDATE_PASSWORD_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "username": "'$USERNAME'",
-    "new_password": "'$NEW_PASSWORD'"
-  }')
+  # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
 
-  # Get the HTTP status code (last 3 characters of the response)
-  HTTP_STATUS="${UPDATE_PASSWORD_RESPONSE: -3}"
+  # Define the HTTP request type
+  REQUEST_TYPE="POST"
+  
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$UPDATE_PASSWORD_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
+
+  # Make the POST request with JSON body
+  UPDATE_PASSWORD_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$UPDATE_PASSWORD_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
+
+  # Extract HTTP status and response body
   HTTP_BODY="${UPDATE_PASSWORD_RESPONSE%???}"
+  HTTP_STATUS="${UPDATE_PASSWORD_RESPONSE: -3}"
 
+  # Print the response
   echo "Update password response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: Password update failed."
+    echo "❌ Error: Password update failed."
     exit 1
   fi
 
-  echo "Password updated successfully."
-  echo "--------------------------"
+  echo "✅ Password updated successfully."
+  echo
 }
+
 
 # Function to update user email address
 update_email() {
-  echo "Test: UPDATE EMAIL ADDRESS"
-  echo "--------------------------"
-  echo "USERNAME=$USERNAME"
-  echo "URL: $UPDATE_EMAIL_URL"
+  echo "TEST END POINT-->UPDATE EMAIL ADDRESS"
+  echo
+  echo "REQUEST URL: $UPDATE_EMAIL_URL"
 
   # Construct JSON payload dynamically
   JSON_PAYLOAD=$(jq -n \
@@ -309,91 +410,136 @@ update_email() {
       new_email: $new_email
     }')
 
-  # Make the PUT request
-  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_EMAIL_URL" \
+  # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$UPDATE_EMAIL_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
+
+  # Make the PUT request with JSON body
+  UPDATE_EMAIL_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$UPDATE_EMAIL_URL" \
     -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
     -d "$JSON_PAYLOAD")
 
   # Extract HTTP status and response body
-  HTTP_BODY=$(echo "$UPDATE_EMAIL_RESPONSE" | sed '$ d')
-  HTTP_STATUS=$(echo "$UPDATE_EMAIL_RESPONSE" | tail -n1)
+  HTTP_BODY="${UPDATE_EMAIL_RESPONSE%???}"
+  HTTP_STATUS="${UPDATE_EMAIL_RESPONSE: -3}"
 
+  # Print the response
   echo "Update email response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: Email update failed."
+    echo "❌ Error: Email update failed."
     exit 1
   fi
 
-  echo "Email updated successfully."
-  echo "--------------------------"
+  echo "✅ Email updated successfully."
+  echo
 }
+
 
 # Function to update user role
 update_role() {
-  echo "Test: UPDATE USER ROLE"
-  echo "--------------------------"
-  echo "USER NAME=$USERNAME"
-  
-  echo "URL:$UPDATE_ROLE_URL"
+  echo "TEST END POINT-->UPDATE USER ROLE"
+  echo
+  echo "REQUEST URL: $UPDATE_ROLE_URL"
 
-  UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X PUT "$UPDATE_ROLE_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "username": "'$USERNAME'",
-    "role": "'$NEW_ROLE'"
-  }')
+  # Construct JSON payload dynamically
+  JSON_PAYLOAD=$(jq -n \
+    --arg username "$USERNAME" \
+    --arg role "$NEW_ROLE" \
+    '{
+      username: $username,
+      role: $role
+    }')
 
-  # Get the HTTP status code (last 3 characters of the response)
-  HTTP_STATUS="${UPDATE_ROLE_RESPONSE: -3}"
+  # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="PUT"
+
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$UPDATE_ROLE_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
+
+  # Make the PUT request with JSON body
+  UPDATE_ROLE_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$UPDATE_ROLE_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
+
+  # Extract HTTP status and response body
   HTTP_BODY="${UPDATE_ROLE_RESPONSE%???}"
+  HTTP_STATUS="${UPDATE_ROLE_RESPONSE: -3}"
 
+  # Print the response
   echo "Update role response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: Role update failed."
+    echo "❌ Error: Role update failed."
     exit 1
   fi
 
-  echo "Role updated successfully."
-  echo "--------------------------"
+  echo "✅ Role updated successfully."
+  echo
 }
 
 
 
 # Function to delete user by username
 delete_user() {
-  echo "Test: DELETE USER"
-  echo "--------------------------"
-  echo "USERNAME=$USERNAME"
-  echo "URL:$DELETE_USER_URL"
+  echo "TEST END POINT-->DELETE USER"
+  echo
+  echo "REQUEST URL: $DELETE_USER_URL"
+
+  # Construct JSON payload dynamically
+  JSON_PAYLOAD=$(jq -n --arg username "$USERNAME" '{username: $username}')
+
+  # Print the JSON payload
+  echo "JSON BODY: $JSON_PAYLOAD"
+
+  # Define the HTTP request type
+  REQUEST_TYPE="DELETE"
+
+  # Print the full curl command and request type
+  echo "REQUEST TYPE: $REQUEST_TYPE"
+  echo "COMMAND: curl -X $REQUEST_TYPE \"$DELETE_USER_URL\" -H \"Authorization: Bearer $JWT_TOKEN\" -H \"Content-Type: application/json\" -d '$JSON_PAYLOAD'"
 
   # Perform the DELETE request and capture both status code and response body
-  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE "$DELETE_USER_URL" -H "Authorization: Bearer $JWT_TOKEN" -H "Content-Type: application/json" -d '{
-    "username": "'$USERNAME'"
-  }')
+  DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X $REQUEST_TYPE "$DELETE_USER_URL" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$JSON_PAYLOAD")
 
   # Extract the response body and HTTP status code
   HTTP_STATUS=$(echo "$DELETE_RESPONSE" | tail -n1)  # Extract the last line as the HTTP status code
   HTTP_BODY=$(echo "$DELETE_RESPONSE" | sed '$ d')   # Remove the last line (HTTP status code) to get the body
 
+  # Print the response
   echo "Delete response: $HTTP_BODY"
   echo "HTTP Status Code: $HTTP_STATUS"
 
   # Check if the HTTP status code is 200
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "Error: User deletion failed."
+    echo "❌ Error: User deletion failed."
     exit 1
   fi
 
-  echo "User deleted successfully."
-  echo "--------------------------"
+  echo "✅ User deleted successfully."
+  echo
 }
 
 
 
-show_databas_table(){
+show_database_table(){
   
   # Get the container ID using the container name
   CONTAINER_ID=$(docker ps -qf "name=$USER_POSTGRES_DB_CONTAINER_NAME")
@@ -414,43 +560,36 @@ show_databas_table(){
 
 health_check
 
-
-# First Register
 register_user
+show_database_table
 
-# Start to test all end points
 login_user
-show_databas_table
-#get_user_details
+show_database_table
 
 deactivate_user
-show_databas_table
-#get_user_details
+show_database_table
 
 
 activate_user
-show_databas_table
-#get_user_details
+show_database_table
+
 
 update_email
-show_databas_table
-#get_user_details
+show_database_table
+
 
 update_password
-show_databas_table
-#get_user_details
+show_database_table
 
 update_role
-show_databas_table
-#get_user_details
+show_database_table
+
 
 update_user
-show_databas_table
-#get_user_details
-
+show_database_table
 
 delete_user
-show_databas_table
+show_database_table
 
 # Final message
 echo "ALL TESTS ARE DONE!!!"

@@ -113,18 +113,202 @@ http://localhost:8080/swagger/index.html
 ### API DOCUMENTATION
 
 ## USER-SERVICE
+```bash
+TEST END POINT--->HEALTH CHECK
+REQUEST URL: http://localhost:8080/health
+REQUEST TYPE: GET
+COMMAND: curl -X GET "http://localhost:8080/health"
+Health Check Response Body: OK
+HTTP Status Code: 200
+Service is healthy!
+✅ Health Check successfully
 
-# Test: REGISTER NEW USER
+TEST END POINT-->REGISTER NEW USER
 
-
-- **REQUEST URL**: `http://localhost:8080/register`
-- **REQUEST TYPE**: `POST`
-- **COMMAND**:
-  ```bash
-  curl -X POST "http://localhost:8080/register" -H "Content-Type: application/json" -d '{
+REQUEST URL: http://localhost:8080/register
+REQUEST TYPE: POST
+COMMAND: curl -X POST "http://localhost:8080/register" -H "Content-Type: application/json" -d '{
     "username": "testuser",
     "mailAddress": "testuser@example.com",
     "password": "TestPassword123",
     "role": "Admin"
   }'
+Registration response: {"mailAddress":"testuser@example.com","message":"User created successfully","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY"}
+HTTP Status Code: 200
+User registered successfully!
+✅ Register New User User successfully
+
+ id | username |     mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at           
+----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | testuser@example.com | $2a$10$dQZDBhcWr47ciMLAYQnlYOhMs/v4mW8pvBRjGjOa6Pfv6WQrrmOtC | Admin | t         | f            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:36.261061+00
+(1 row)
+
+TEST END POINT-->LOGIN USER
+
+REQUEST URL: http://localhost:8080/login
+REQUEST TYPE: POST
+COMMAND: curl -X POST "http://localhost:8080/login" -H "Content-Type: application/json" -d '{
+    "username": "testuser",
+    "password": "TestPassword123"
+  }'
+JSON BODY: {
+    "username": "testuser",
+    "password": "TestPassword123"
+  }
+Login response: {"loginStatus":"true","message":"Login successful","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY"}
+HTTP Status Code: 200
+✅ Login successful. JWT token received.
+
+ id | username |     mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at          
+----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+------------------------------
+ 11 | testuser | testuser@example.com | $2a$10$dQZDBhcWr47ciMLAYQnlYOhMs/v4mW8pvBRjGjOa6Pfv6WQrrmOtC | Admin | t         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:36.42247+00
+(1 row)
+
+TEST END POINT-->DEACTIVATE USER
+
+REQUEST URL: http://localhost:8080/deactivate-user
+JSON BODY: {
+  "username": "testuser"
+}
+REQUEST TYPE: PUT
+COMMAND: curl -X PUT "http://localhost:8080/deactivate-user" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser"
+}'
+Deactivate response: {"message":"User deactivated successfully","username":"testuser"}
+HTTP Status Code: 200
+✅ User deactivated successfully.
+
+ id | username |     mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at           
+----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | testuser@example.com | $2a$10$dQZDBhcWr47ciMLAYQnlYOhMs/v4mW8pvBRjGjOa6Pfv6WQrrmOtC | Admin | f         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:36.540578+00
+(1 row)
+
+TEST END POINT-->ACTIVATE USER
+
+REQUEST URL: http://localhost:8080/activate-user
+JSON BODY: {
+  "username": "testuser"
+}
+REQUEST TYPE: PUT
+COMMAND: curl -X PUT "http://localhost:8080/activate-user" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser"
+}'
+Activate response: {"message":"User activated successfully","username":"testuser"}
+HTTP Status Code: 200
+✅ User activated successfully.
+
+ id | username |     mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at           
+----+----------+----------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | testuser@example.com | $2a$10$dQZDBhcWr47ciMLAYQnlYOhMs/v4mW8pvBRjGjOa6Pfv6WQrrmOtC | Admin | t         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:36.641429+00
+(1 row)
+
+TEST END POINT-->UPDATE EMAIL ADDRESS
+
+REQUEST URL: http://localhost:8080/update-email
+JSON BODY: {
+  "username": "testuser",
+  "new_email": "newmail@example.com"
+}
+REQUEST TYPE: PUT
+COMMAND: curl -X PUT "http://localhost:8080/update-email" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser",
+  "new_email": "newmail@example.com"
+}'
+Update email response: {"message":"Email updated successfully","new_email":"newmail@example.com","username":"testuser"}
+
+HTTP Status Code: 200
+✅ Email updated successfully.
+
+ id | username |    mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at           
+----+----------+---------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | newmail@example.com | $2a$10$dQZDBhcWr47ciMLAYQnlYOhMs/v4mW8pvBRjGjOa6Pfv6WQrrmOtC | Admin | t         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:36.745034+00
+(1 row)
+
+TEST END POINT-->UPDATE NEW PASSWORD
+
+REQUEST URL: http://localhost:8080/update-password
+JSON BODY: {
+  "username": "testuser",
+  "new_password": "NewTestPassword123"
+}
+REQUEST TYPE: POST
+COMMAND: curl -X POST "http://localhost:8080/update-password" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser",
+  "new_password": "NewTestPassword123"
+}'
+Update password response: Password updated successfully
+
+HTTP Status Code: 200
+✅ Password updated successfully.
+
+ id | username |    mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at           
+----+----------+---------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | newmail@example.com | $2a$10$sST/pQh82IIz2L.G.mK.JusUPdT8BU1ipK0b6JSqj8LYQCSrgf7qy | Admin | t         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:36.999126+00
+(1 row)
+
+TEST END POINT-->UPDATE USER ROLE
+
+REQUEST URL: http://localhost:8080/update-role
+JSON BODY: {
+  "username": "testuser",
+  "role": "MANAGER"
+}
+REQUEST TYPE: PUT
+COMMAND: curl -X PUT "http://localhost:8080/update-role" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser",
+  "role": "MANAGER"
+}'
+Update role response: User role updated to: MANAGER
+HTTP Status Code: 200
+✅ Role updated successfully.
+
+ id | username |    mail_address     |                           password                           |  role   | activated | login_status |          created_at           |          updated_at           
+----+----------+---------------------+--------------------------------------------------------------+---------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | newmail@example.com | $2a$10$sST/pQh82IIz2L.G.mK.JusUPdT8BU1ipK0b6JSqj8LYQCSrgf7qy | MANAGER | t         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:37.101632+00
+(1 row)
+
+TEST END POINT-->UPDATE USER
+
+REQUEST URL: http://localhost:8080/update-user
+JSON BODY: {
+  "username": "testuser",
+  "email": "",
+  "role": "Admin"
+}
+REQUEST TYPE: PUT
+COMMAND: curl -X PUT "http://localhost:8080/update-user" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser",
+  "email": "",
+  "role": "Admin"
+}'
+Update response: {"message":"User updated successfully","username":"testuser"}
+HTTP Status Code: 200
+✅ User updated successfully.
+
+ id | username |    mail_address     |                           password                           | role  | activated | login_status |          created_at           |          updated_at           
+----+----------+---------------------+--------------------------------------------------------------+-------+-----------+--------------+-------------------------------+-------------------------------
+ 11 | testuser | newmail@example.com | $2a$10$sST/pQh82IIz2L.G.mK.JusUPdT8BU1ipK0b6JSqj8LYQCSrgf7qy | Admin | t         | t            | 2025-02-10 07:07:36.261061+00 | 2025-02-10 07:07:37.204579+00
+(1 row)
+
+TEST END POINT-->DELETE USER
+
+REQUEST URL: http://localhost:8080/delete-user
+JSON BODY: {
+  "username": "testuser"
+}
+REQUEST TYPE: DELETE
+COMMAND: curl -X DELETE "http://localhost:8080/delete-user" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkyNTc2NTYsInJvbGUiOiJBZG1pbiIsInVzZXJuYW1lIjoidGVzdHVzZXIifQ.JFm3anAYnKpvq_JEMiyGBfG5k7YN9eEY99et1cqNpbY" -H "Content-Type: application/json" -d '{
+  "username": "testuser"
+}'
+Delete response: User deleted successfully
+HTTP Status Code: 200
+✅ User deleted successfully.
+
+ id | username | mail_address | password | role | activated | login_status | created_at | updated_at 
+----+----------+--------------+----------+------+-----------+--------------+------------+------------
+(0 rows)
+
+```
+
+ALL TESTS ARE DONE!!!
 
