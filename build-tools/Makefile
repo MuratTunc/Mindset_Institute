@@ -44,7 +44,6 @@ wait_general:
 	done
 	echo " ✅"
 
-
 ## clean_volumes: Removes all volumes (database data) to start fresh
 clean_volumes:
 	echo "🧹 Cleaning up all database volumes..."
@@ -81,7 +80,6 @@ check_postgres:
 	else \
 		echo "PostgreSQL is not running on port 5432."; \
 	fi	
-
 
 ## build_user_service: Builds the user-service binary as a Linux executable
 build_user_service:
@@ -122,3 +120,23 @@ integration_test:
 	./integration_salestracking_service.sh
 	echo "✅ Integration tests completed successfully!"
 
+## migration_up: Runs the migration tool to apply all migrations
+migration_up:
+	@echo "🚀 Running database migrations..."
+	@set -a; . ./$(ENV_FILE); set +a; \
+	cd cmd/migration-tool && go run main.go
+	echo "✅ Migrations applied successfully!"
+
+## migration_down: Rolls back the most recent migration
+migration_down:
+	@echo "⏪ Rolling back the most recent migration..."
+	@set -a; . ./$(ENV_FILE); set +a; \
+	cd cmd/migration-tool && go run main.go down
+	echo "✅ Most recent migration rolled back!"
+
+## migration_status: Checks the current migration version
+migration_status:
+	@echo "🔍 Checking current migration version..."
+	@set -a; . ./$(ENV_FILE); set +a; \
+	cd cmd/migration-tool && go run main.go status
+	echo "✅ Migration version check completed!"
